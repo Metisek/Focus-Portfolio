@@ -1,8 +1,8 @@
 # Historia zmian
 
-Etykieta wersji została na „1.1”. Kolejne wydania na klubfocus.pl są opisane według dat.
+Wcześniejsze zmiany przed pierwszym wydaniem na GitHubie są opisane według dat (etykieta wersji została na „1.1”).
 
-## Niewydane
+## 1.1 (2026-11-10, pierwsze wydanie na GitHubie)
 
 - Aktualizacje z wydań na GitHubie (Plugin Update Checker 5.7, nagłówek `Update URI`); wydanie budowane przez GitHub Action z tagu `vX.Y`.
 - Linki „GitHub” i „☕ Postaw kawę” na liście wtyczek i na ekranie Pomoc.
