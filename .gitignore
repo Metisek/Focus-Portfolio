@@ -11,3 +11,6 @@ desktop.ini
 # dane logowania nigdy do repozytorium
 .vscode/sftp.json
 .env
+
+# notatki lokalne (praca z lustrem FTP, wydania, testy)
+NOTATKI.md
