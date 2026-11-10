@@ -1,44 +1,47 @@
 # Focus Portfolio
 
-Wtyczka WordPress: portfolio zdjęć czytane prosto z folderu na hostingu (kategorie → wydarzenia → zdjęcia). Ma automatyczne skanowanie, miniatury WebP, eksplorator plików, rejestr fotografów, widżety Elementora i bloki Gutenberga.
+A WordPress plugin that builds a photo portfolio straight from a folder on your hosting: categories → events → photos. It includes:
+- automatic scanning and WebP thumbnails;
+- a file explorer and a photographers registry;
+- Elementor widgets and Gutenberg blocks.
 
-Instrukcja dla redaktorów: [docs/instrukcja.pdf](docs/instrukcja.pdf). Ta sama treść jest w panelu, w *Focus Portfolio → Instrukcja*.
+The editors' manual is in Polish: [docs/instrukcja.html](docs/instrukcja.html), also as a [PDF](docs/instrukcja.pdf). The same manual is in the dashboard under *Focus Portfolio → Instrukcja*. The admin screens are in Polish. Visitor-facing text is translated into English, German, Spanish, French and Italian, following the site language.
 
-## Instalacja
+## Installation
 
-Wymagania: WordPress 6.0+, PHP 7.4+.
+Requirements: WordPress 6.0+, PHP 7.4+.
 
-1. Pobierz `focus-portfolio-X.Y.zip` z [najnowszego wydania](https://github.com/Metisek/Focus-Portfolio/releases/latest).
-2. Wgraj go w *Wtyczki → Dodaj nową → Wyślij wtyczkę na serwer* i włącz wtyczkę.
-3. W *Focus Portfolio → Ustawienia* wskaż folder źródłowy ze zdjęciami i stronę portfolio.
+1. Download `focus-portfolio-X.Y.zip` from the [latest release](https://github.com/Metisek/Focus-Portfolio/releases/latest).
+2. Upload it under *Plugins → Add New → Upload Plugin* and activate it.
+3. In *Focus Portfolio → Ustawienia* (Settings), choose the source folder with your photos and the portfolio page.
 
-## Aktualizacje
+## Updates
 
-Wtyczka sama sprawdza [wydania w tym repozytorium](https://github.com/Metisek/Focus-Portfolio/releases). Nowa wersja pojawia się w *Wtyczki* jako zwykła aktualizacja. Przy wtyczce jest też link „Sprawdź aktualizacje”.
+The plugin checks the [releases of this repository](https://github.com/Metisek/Focus-Portfolio/releases) by itself. A new version shows up under *Plugins* like any other update, and the plugin row also has a "Check for updates" link.
 
-Ustawienia, miniatury i opisy folderów leżą poza katalogiem wtyczki, więc aktualizacja ich nie rusza.
+Settings, thumbnails and folder descriptions are stored outside the plugin folder, so updates don't touch them.
 
-## Co gdzie jest
+## Code map
 
-| Ścieżka | Zawartość |
+| Path | Contents |
 |---|---|
-| `focus-portfolio.php` | nagłówek wtyczki, wersja, ładowanie klas |
-| `includes/class-fp-settings.php` | ustawienia i migracje bazy |
-| `includes/class-fp-scanner.php` | skan folderu źródłowego |
-| `includes/class-fp-frontend.php` | strony portfolio dla odwiedzających |
-| `includes/class-fp-fs.php`, `admin/view-explorer.php` | Eksplorator (pliki, kosz) |
-| `includes/class-fp-photos*.php` | widżet „Focus Portfolio – Zdjęcia” (losowe, z folderu, wybrane, najlepsze, z wydarzeń) |
-| `includes/class-fp-elementor-widget.php`, `class-fp-embeds.php` | widżet Elementora portfolio, blok, shortcode |
-| `includes/class-fp-updates.php`, `vendor/plugin-update-checker/` | aktualizacje z wydań na GitHubie ([Plugin Update Checker](https://github.com/YahnisElsts/plugin-update-checker)) |
-| `includes/class-fp-i18n.php`, `languages/*.php` | tłumaczenia tekstów dla odwiedzających (EN, DE, ES, FR, IT); panel jest po polsku |
-| `includes/admin/view-*.php` | ekrany panelu |
-| `assets/` | CSS i JS |
-| `docs/` | instrukcja dla redaktorów (HTML i PDF) |
+| `focus-portfolio.php` | plugin header, version, class loading |
+| `includes/class-fp-settings.php` | settings and database migrations |
+| `includes/class-fp-scanner.php` | source folder scanner |
+| `includes/class-fp-frontend.php` | visitor-facing portfolio pages |
+| `includes/class-fp-fs.php`, `admin/view-explorer.php` | file explorer (files, trash) |
+| `includes/class-fp-photos*.php` | "Focus Portfolio – Zdjęcia" photos widget (random, from folders, picked, best, one per event) |
+| `includes/class-fp-elementor-widget.php`, `class-fp-embeds.php` | Elementor portfolio widget, block, shortcode |
+| `includes/class-fp-updates.php`, `vendor/plugin-update-checker/` | updates from GitHub releases ([Plugin Update Checker](https://github.com/YahnisElsts/plugin-update-checker)) |
+| `includes/class-fp-i18n.php`, `languages/*.php` | translations of visitor-facing text |
+| `includes/admin/view-*.php` | dashboard screens |
+| `assets/` | CSS and JavaScript |
+| `docs/` | editors' manual (HTML and PDF, Polish) |
 
-## Wsparcie
+## Support
 
-Błędy i pomysły zgłaszaj w [Issues](https://github.com/Metisek/Focus-Portfolio/issues). Wtyczka jest darmowa; jeśli Ci się przydaje, [☕ postaw kawę](https://buycoffee.to/metis).
+Report bugs and ideas in [Issues](https://github.com/Metisek/Focus-Portfolio/issues). The plugin is free; if you find it useful, you can [☕ buy me a coffee](https://buycoffee.to/metis).
 
-## Licencja
+## License
 
-GPL-2.0-or-later. Dołączona biblioteka Plugin Update Checker: MIT (`vendor/plugin-update-checker/license.txt`).
+GPL-2.0-or-later. Bundled Plugin Update Checker library: MIT (`vendor/plugin-update-checker/license.txt`).
