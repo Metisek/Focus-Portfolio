@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Focus Portfolio: instrukcja</title>
+<style>
+@page { size: A4; margin: 16mm 16mm 18mm; }
+:root { --acc: #1bb0ce; --ink: #1c1f22; --muted: #5d666f; --line: #dfe4e8; --soft: #f3f7f8; }
+body { font: 10.5pt/1.5 "Segoe UI", Calibri, Arial, sans-serif; color: var(--ink); margin: 0; background: #fff; }
+@media screen { body { padding: 20px 26px; font-size: 14px; } }
+.fpdoc h1 { font-size: 24pt; margin: 0 0 4px; letter-spacing: -.01em; }
+.fpdoc h2 { font-size: 15pt; margin: 22px 0 6px; padding-top: 6px; border-top: 2px solid var(--acc); break-after: avoid; }
+.fpdoc h3 { font-size: 11.5pt; margin: 14px 0 4px; break-after: avoid; }
+.fpdoc p, .fpdoc li { max-width: 68ch; }
+.fpdoc .lede { color: var(--muted); font-size: 11.5pt; margin: 0 0 14px; }
+.fpdoc .meta { font-size: 9pt; color: var(--muted); margin-bottom: 18px; }
+.fpdoc pre { background: #1d2327; color: #e9edf0; padding: 9px 12px; border-radius: 4px; font: 9pt/1.45 Consolas, monospace; white-space: pre; overflow-x: auto; break-inside: avoid; }
+.fpdoc code { font: 9.5pt Consolas, monospace; background: var(--soft); padding: 0 3px; border-radius: 2px; }
+.fpdoc pre code { background: none; padding: 0; }
+.fpdoc table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; font-size: 9.5pt; break-inside: avoid; }
+.fpdoc th, .fpdoc td { border: 1px solid var(--line); padding: 5px 7px; text-align: left; vertical-align: top; }
+.fpdoc th { background: var(--soft); }
+.fpdoc .tip { background: #e6f6f9; border-left: 4px solid var(--acc); padding: 7px 11px; margin: 8px 0; break-inside: avoid; }
+.fpdoc .warn { background: #fcf3dd; border-left: 4px solid #d29b1a; padding: 7px 11px; margin: 8px 0; break-inside: avoid; }
+.fpdoc ol.steps > li { margin-bottom: 5px; }
+.fpdoc .ok { color: #157a3a; font-weight: 600; }
+.fpdoc .bad { color: #a32a2a; font-weight: 600; }
+.fpdoc .toc { columns: 2; margin: 0 0 6px; padding-left: 18px; }
+.fpdoc kbd { font: 9pt Consolas, monospace; border: 1px solid #bbb; border-bottom-width: 2px; border-radius: 3px; padding: 0 4px; }
+</style>
+</head>
+<body>
+<div class="fpdoc">
+
+<h1>Focus Portfolio</h1>
+<p class="lede">Instrukcja dla redakcji i administratorów: jak wgrywać, nazywać i porządkować zdjęcia, żeby portfolio układało się samo.</p>
+<p class="meta">Wersja wtyczki 1.1 · Panel: <b>Focus Portfolio</b> w menu bocznym WordPressa</p>
+
+<ol class="toc">
+	<li>Jak to działa</li>
+	<li>Nowa fotorelacja w 5 krokach</li>
+	<li>Nazwy katalogów</li>
+	<li>Nazwy plików i autorzy</li>
+	<li>Eksplorator</li>
+	<li>Okładki, gwiazdki, kolejność</li>
+	<li>Do uporządkowania</li>
+	<li>Kosz</li>
+	<li>Fotografowie i OCR</li>
+	<li>Strona portfolio i Elementor</li>
+	<li>Uprawnienia</li>
+	<li>Dobre praktyki i pytania</li>
+</ol>
+
+<h2>1. Jak to działa</h2>
+<p>Portfolio czyta zdjęcia prosto z katalogu na serwerze (domyślnie <code>wp-content/uploads/portfolio-focus/</code>). Nie trzeba niczego dodawać do Biblioteki mediów ani tworzyć wpisów.</p>
+<ul>
+	<li><b>Katalog pierwszego poziomu = kategoria</b> (np. <code>FOTORELACJA</code>, <code>KONCERTY</code>, <code>SESJA</code>, <code>DKF</code>).</li>
+	<li><b>Katalog wydarzenia = jedna galeria</b> na stronie, z własnym adresem, np. <code>/portfolio/fotorelacje/kwiecien-2026/bal-tysiaca-swiatel/</code>.</li>
+	<li>Wtyczka co 15 minut sprawdza, czy coś się zmieniło. Po zmianach w Eksploratorze odświeża się od razu.</li>
+	<li>Do strony robi lekkie miniatury (siatka WebP, powiększenie w formacie oryginału). <b>Oryginały zostają nietknięte.</b></li>
+	<li>Tytuły, opisy, daty, okładki, gwiazdki i autorzy są zapisywane w pliku <code>_portfolio.json</code> w danym katalogu, więc przenoszą się razem z nim, także przez FTP.</li>
+</ul>
+
+<h2>2. Nowa fotorelacja w 5 krokach</h2>
+<ol class="steps">
+	<li>Otwórz <b>Focus Portfolio → Eksplorator</b> i wejdź w <code>FOTORELACJA</code>.</li>
+	<li>Jeśli nie ma katalogu miesiąca, kliknij <b>Nowy miesiąc</b> i wpisz np. <code>2026-11 Listopad</code>.</li>
+	<li>Wejdź w miesiąc, kliknij <b>Nowe wydarzenie</b> i wpisz nazwę, np. <code>Otrzęsiny WIL</code>.</li>
+	<li>Przeciągnij zdjęcia z komputera do okna (albo <b>Wgraj</b>). Można wgrać ZIP: katalogi z ZIP-a stają się wydarzeniami.</li>
+	<li>W panelu <b>Właściwości</b> (po prawej) wpisz opis, wybierz do 5 okładek i zapisz. Gotowe. Link „Zobacz na stronie” otwiera galerię.</li>
+</ol>
+<div class="tip">Przez FTP robisz to samo: utwórz katalogi i wgraj zdjęcia. Strona zaktualizuje się w ciągu 15 minut (albo od razu po „Skanuj teraz” na Pulpicie).</div>
+
+<h2>3. Nazwy katalogów</h2>
+<p>Każda kategoria ma schemat (ustawiany w <b>Struktura</b>). Wtyczka rozpoznaje go też sama.</p>
+
+<h3>Miesiące → wydarzenia (np. Fotorelacje)</h3>
+<pre><code>FOTORELACJA/
+  2026-04 Kwiecień/            rok-miesiąc i nazwa miesiąca
+    Bal Tysiąca Świateł/       1 katalog = 1 wydarzenie
+      DSC_0001.jpg
+    Juwenalia-01.jpg           zdjęcia luzem „Nazwa-NN” też tworzą wydarzenie</code></pre>
+<table>
+	<tr><th>Nazwa katalogu miesiąca</th><th>Wynik</th></tr>
+	<tr><td><code>2026-04 Kwiecień</code></td><td class="ok">najlepiej: rok jednoznaczny</td></tr>
+	<tr><td><code>KWIECIEŃ 2026</code>, <code>Listopad 2025</code></td><td class="ok">poprawne</td></tr>
+	<tr><td><code>2025/11 Listopad</code> (miesiąc w katalogu roku)</td><td class="ok">poprawne</td></tr>
+	<tr><td><code>KWIECIEŃ</code></td><td>działa, ale rok zostaje zgadnięty z domyślnego roku zdjęć (<b>Ustawienia → Daty</b>: rok kalendarzowy, akademicki od października albo sezon od wybranego miesiąca) i trafia do „Do uporządkowania”</td></tr>
+	<tr><td><code>Bal Tysiąca Świateł</code> (bez miesiąca, bezpośrednio w kategorii)</td><td class="bad">wydarzenie bez daty: trzeba podać datę albo dać do Archiwum</td></tr>
+</table>
+
+<h3>Edycje (numer + rok, np. DKF)</h3>
+<pre><code>DKF/
+  2026/
+    03 Ramka/                  numer edycji i temat
+      Miłosz Wit Nowak.jpg     nazwa pliku = autor
+  07 granice 25_/              stary zapis: rok jako „25_”</code></pre>
+<p>Edycja bez roku trafia do „Archiwum”. Rok można dopisać w nazwie albo w Eksploratorze.</p>
+
+<h3>Wydarzenia (np. Koncerty, Sesje)</h3>
+<pre><code>SESJA/
+  Sesja na dzień kobiet/       1 katalog = 1 galeria
+KONCERTY/
+  eliminacje varso-01.jpg      luzem „Nazwa-NN” = galeria „Eliminacje varso”
+  DSC_1234.jpg                 bez nazwy: grupa „Pozostałe”</code></pre>
+
+<h3>Wydarzenia z datą w nazwie</h3>
+<pre><code>KATEGORIA/
+  2026-05-12 Juwenalia/        data znika z tytułu na stronie
+  2026-04 Bal Tysiąca Świateł/ sam miesiąc też wystarczy
+  2025 Plener/                 albo sam rok</code></pre>
+<p>Katalogi same układają się po dacie. Na stronie wydarzenia są pogrupowane po miesiącach.</p>
+
+<h3>Lata → wydarzenia</h3>
+<pre><code>KATEGORIA/
+  2026/
+    Sesja na dzień kobiet/     1 katalog = 1 galeria
+  2025/
+    Studniówka/</code></pre>
+<p>Dla kategorii z kilkoma galeriami w roku (sesje, wyjazdy, projekty). Na stronie pogrupowane po latach. Schemat wybierasz w <b>Struktura → Kategorie i filtry</b>; tam jest też podpowiedź „Który schemat wybrać?”.</p>
+
+<h3>Zasady wspólne</h3>
+<ul>
+	<li>Katalogi i pliki zaczynające się od <code>__</code> są pomijane (np. <code>__robocze</code>). Tak działa też kosz <code>__kosz</code>.</li>
+	<li>Notatki w nawiasach nie trafiają na stronę: <code>GRUDZIEŃ (bez ślizgawki)</code> → „Grudzień”.</li>
+	<li>Kopie z Biblioteki mediów (<code>-150x150</code>, <code>-scaled</code>) są pomijane.</li>
+	<li>Zmiana nazwy katalogu wydarzenia zmienia jego adres na stronie (stare linki przestaną działać).</li>
+	<li>W <b>Struktura → Sprawdź nazwę</b> zobaczysz, jak wtyczka zrozumie nazwę, zanim ją utworzysz. Eksplorator ostrzega przy nazwie, która może popsuć wyświetlanie.</li>
+</ul>
+
+<h2>4. Nazwy plików i autorzy</h2>
+<p>Autor zdjęcia jest brany kolejno z:</p>
+<ol>
+	<li>ustawienia w Eksploratorze (pole „Autor” zdjęcia albo „Domyślny autor” katalogu),</li>
+	<li>metadanych EXIF (pole „Artist” ustawione w aparacie lub Lightroomie),</li>
+	<li>nazwy pliku: <code>1_Imię Nazwisko.jpg</code>, <code>Kopia 2_Imię Nazwisko.jpg</code>, <code>zdjęcie@nick.jpg</code>,</li>
+	<li>podpisu wtopionego w zdjęcie (OCR, rozdział 9).</li>
+</ol>
+<div class="tip">Najmniej pracy: ustaw w aparacie lub Lightroomie pole <b>Artist / Twórca</b>. Wtedy autor pojawia się sam.</div>
+
+<h2>5. Eksplorator</h2>
+<p><b>Focus Portfolio → Eksplorator</b> działa jak Eksplorator Windows:</p>
+<ul>
+	<li><b>Drzewo</b> po lewej. Miesiące są pogrupowane w lata; kliknięcie roku pokazuje wszystkie zdjęcia z tego roku. Liczba przy katalogu to zdjęcia razem z podkatalogami.</li>
+	<li><b>Widoki</b>: kafelki (z suwakiem wielkości), lista, szczegóły (autor, data, rozmiar).</li>
+	<li><b>„Wszystkie zdjęcia z podkatalogów”</b>: podgląd całego miesiąca lub kategorii naraz.</li>
+	<li><b>„Pokaż kopie WordPressa”</b>: pokazuje (wyszarzone) kopie rozmiarów, które zrobiła Biblioteka mediów (<code>-150x150</code>, <code>-scaled</code>). Na stronie są zawsze pomijane; domyślnie ukryte też w Eksploratorze.</li>
+	<li><b>Zaznaczanie</b>: klik, <kbd>Ctrl</kbd>+klik, <kbd>Shift</kbd>+klik, <kbd>Ctrl</kbd>+<kbd>A</kbd>.</li>
+	<li><b>Prawy przycisk</b> otwiera menu: na zdjęciu lub katalogu (otwórz, zmień nazwę, przenieś, gwiazdka, okładka, do kosza), na katalogu w drzewie (też nowy katalog w środku i wgrywanie) i na pustym miejscu (nowy katalog, wgraj, zaznacz wszystko, zmiana nazwy bieżącego katalogu). <b>Drugi prawy klik</b> (albo <kbd>Shift</kbd>+prawy) daje zwykłe menu przeglądarki.</li>
+	<li><b>Przeciąganie</b>: zdjęcia na katalog w drzewie lub kafelek = przeniesienie; pliki z komputera = wgranie.</li>
+	<li><b>Przenieś do…</b> ma wyszukiwarkę katalogów (np. wpisz „listopad bal”).</li>
+	<li>Skróty: <kbd>F2</kbd> zmiana nazwy, <kbd>Del</kbd> do kosza, <kbd>Enter</kbd> otwórz, <kbd>Backspace</kbd> katalog wyżej, <kbd>F5</kbd> odśwież.</li>
+</ul>
+<p><b>Właściwości</b> (panel po prawej) dla bieżącego katalogu: przyciski <b>Zmień nazwę</b>, <b>Przenieś</b> i <b>Do kosza</b>, a pod nimi tytuł na stronie, podtytuł, opis, data, Archiwum, Ukryj, domyślny autor, kolejność zdjęć i okładki. Dla zdjęcia: autor, gwiazdka, okładka, podgląd.</p>
+<p>Zdjęcia luzem „Nazwa-01.jpg” można jednym kliknięciem zamienić w katalog („Zrób z tego katalog”).</p>
+
+<h2>6. Okładki, gwiazdki, kolejność</h2>
+<ul>
+	<li><b>Okładki</b>: zaznacz do 5 zdjęć i kliknij <b>Okładka</b>. Kolejność zmienisz strzałkami w Właściwościach. Ile okładek widać na karcie (1, 3 albo 5), ustawia Wygląd albo widżet Elementora. Brakujące uzupełnia automat.</li>
+	<li><b>Mozaika kategorii</b> (strona główna portfolio): wejdź w katalog kategorii i wybierz okładki tak samo.</li>
+	<li><b>Gwiazdka</b> oznacza najlepsze zdjęcia: są pierwsze przy sortowaniu „Najlepsze” (potem okładki, potem najnowsze).</li>
+	<li><b>Kolejność zdjęć</b>: automatyczna (nazwa pliku), wg daty zrobienia albo ręczna (przeciągnij zdjęcia w Eksploratorze). W galerii masonry zdjęcia idą po kolei wierszami, od lewej, więc ta kolejność jest też kolejnością w powiększeniu.</li>
+	<li>Na stronie, gdy jesteś zalogowany, w powiększeniu zdjęcia jest przycisk <b>„Ustaw jako okładkę”</b>.</li>
+</ul>
+
+<h2>7. Do uporządkowania</h2>
+<p>Wtyczka niczego sama nie przenosi (chyba że administrator włączy porządkowanie automatyczne w Strukturze). Problemy zbiera w <b>Eksplorator → Do uporządkowania</b>:</p>
+<table>
+	<tr><th>Problem</th><th>Co zrobić</th></tr>
+	<tr><td>Miesiąc lub edycja bez roku</td><td><b>Wpisz datę</b> (zapis w katalogu, nazwa się nie zmienia), <b>Dzisiejsza data</b> albo <b>Archiwum</b>.</td></tr>
+	<tr><td>Wydarzenie bez daty</td><td>Wpisz datę, <b>Przenieś do miesiąca…</b> albo Archiwum.</td></tr>
+	<tr><td>Zdjęcia luzem bez nazwy (DSC/IMG)</td><td><b>Utwórz wydarzenie i przenieś</b>.</td></tr>
+	<tr><td>Pusty katalog</td><td><b>Do kosza</b>.</td></tr>
+</table>
+<p>Na górze listy są przyciski rodzajów (filtr), a każdą grupę można zwinąć. Przy każdej sprawie widać miniatury zdjęć, których dotyczy; kliknięcie otwiera podgląd.</p>
+
+<h2>8. Kosz</h2>
+<p>Usuwanie w Eksploratorze przenosi do <b>Kosza</b> (<code>__kosz</code> w katalogu źródłowym). Każdy redaktor może <b>przywrócić</b> element na pierwotne miejsce. Trwale usunąć (i opróżnić kosz) może tylko administrator. Dostaje przy tym ostrzeżenie, bo tego nie da się cofnąć.</p>
+
+<h2>9. Fotografowie i OCR</h2>
+<p><b>Focus Portfolio → Fotografowie</b>:</p>
+<ul>
+	<li><b>Lista</b> zawiera od razu wszystkich podpisanych pod zdjęciami: niczego nie trzeba dodawać. Uzupełniasz tylko to, co potrzebne: Instagram, Facebook lub strona (podpis „fot.” staje się linkiem), konto na stronie (pole z wyszukiwaniem: wpisz fragment imienia albo loginu), aliasy.</li>
+	<li><b>Poprawione imię i nazwisko</b> (np. literówka z OCR) zastępuje stary zapis na stronie; stary zapis sam staje się aliasem.</li>
+	<li>Na górze: wyszukiwarka, filtr (z danymi, tylko podpis, bez konta, bez profilu, ukryci) i sortowanie (liczba zdjęć, nazwisko, imię).</li>
+	<li><b>Usuń</b> pyta, co usunąć: same dane osoby (podpisy na zdjęciach zostają) albo także <b>podpis autora na jej zdjęciach</b> (wszystkie zapisy tej osoby, także z EXIF i OCR). Usunięty podpis przywrócisz w Eksploratorze, wpisując autora zdjęcia.</li>
+	<li><b>Aliasy</b> łączą różne zapisy jednej osoby (np. <code>@nick</code>, literówki z OCR) w jedno nazwisko na stronie i w filtrze autorów.</li>
+	<li><b>Dopasuj konta</b> łączy osoby z kontami użytkowników po imieniu i nazwisku.</li>
+	<li><b>Rozpoznaj autorów ze stopki (OCR)</b>: wybierz katalogi (albo wszystkie) i miejsce podpisu (domyślnie lewa połowa, dolne 15% zdjęcia). Rozpoznawanie działa w przeglądarce. Wyniki sprawdzasz i poprawiasz w tabeli, potem „Zapisz zaznaczonych autorów”.</li>
+	<li>W <b>Ustawienia → Autorzy i podpisy</b> wpisujesz podpisy organizacji w EXIF, które nie są autorem (np. nazwa klubu wpisana w aparatach), i słowa z logo w stopce, które OCR ma pominąć.</li>
+</ul>
+<h3>Język</h3>
+<p>Napisy dla odwiedzających (filtry, sortowanie, liczniki, miesiące, lightbox) są po polsku, angielsku, niemiecku, hiszpańsku, francusku i włosku. Domyślnie w języku strony, a w <b>Ustawienia → Język</b> można wymusić inny. Tytuły i opisy katalogów zostają takie, jak je wpiszesz. Panel administracyjny jest na razie po polsku.</p>
+
+<h2>10. Strona portfolio i Elementor</h2>
+<ul>
+	<li>Stronę portfolio wybierasz w <b>Ustawienia → Źródło i strona</b> (oznaczona na liście stron jako „Strona portfolio”).</li>
+	<li>Podstrony (kategorie, wydarzenia, „Wszystkie zdjęcia”) powstają same z katalogów. Nie trzeba tworzyć stron.</li>
+	<li>Wygląd całego portfolio ustawiasz w Elementorze: na stronie portfolio wstaw widżet <b>Focus Portfolio</b>. Pokazuje on to, czego dotyczy adres (strona główna, kategoria, wydarzenie), a sekcje wokół niego są wspólne dla wszystkich podstron.</li>
+	<li>Zakładki widżetu: <b>Treść</b> (co pokazać, teksty, filtry, okładki, liczba zdjęć na stronę), <b>Układ</b> (szerokość opakowana/pełna, kolumny, odstępy osobno dla komputera, tabletu i telefonu), <b>Styl</b> (kolory, typografia, zaokrąglenia), <b>Zaawansowane</b> (marginesy).</li>
+	<li><b>Kolumny</b> galerii i kart wydarzeń: <i>stała liczba</i> dla komputera, tabletu i telefonu albo <i>automatycznie</i>: najmniej i najwięcej kolumn oraz minimalna szerokość zdjęcia lub karty (kolumn przybywa, gdy się mieszczą). Opcja <b>Wyrównaj dół galerii</b> sprawia, że kolumny masonry kończą się na jednej wysokości (zdjęcia przycięte najwyżej o 20%).</li>
+	<li><b>Zdjęcia na okładkach</b>: „Wypełnij pole” (domyślnie, zdjęcie przycięte do pola) albo „Całe zdjęcie” (z tłem dookoła).</li>
+	<li><b>Galeria na dowolnej podstronie</b>: wstaw widżet na inną stronę i w „Pokaż” wybierz <b>Zdjęcia z wybranych katalogów</b>, potem jedno lub kilka wydarzeń albo całą kategorię. Zdjęcia pokażą się razem, z filtrami i stronicowaniem.</li>
+	<li>Kolory tekstu, tła i czcionki portfolio są brane ze strony (motywu). W <b>Wygląd → Kolory</b> albo w zakładce Styl widżetu możesz je nadpisać.</li>
+	<li>Ustawienia widżetu mają pierwszeństwo przed <b>Focus Portfolio → Wygląd</b>.</li>
+	<li>Jeśli strona jest w Elementorze bez widżetu, w Ustawieniach jest przycisk <b>„Wstaw widżet Focus Portfolio do strony”</b>.</li>
+</ul>
+<p>Odwiedzający mogą: filtrować po miesiącach i latach oraz po autorach (kilka naraz), sortować (najlepsze, najnowsze, najstarsze, autor), wybrać 20/50/100 zdjęć na stronę i przechodzić między stronami. Każde zdjęcie ma własny adres z nazwą pliku (<code>#foto-DSC_0012.jpg</code>), który można wysłać dalej. W filtrze autorów liczby dotyczą wszystkich zdjęć w wybranych okresach, a pozycja „Bez podpisu” zbiera zdjęcia bez autora. Link „Pobierz oryginał” i „Zapisz obraz” dają plik w formacie oryginału.</p>
+
+<h3>Zdjęcia na innych stronach (np. nad blogiem)</h3>
+<p>Widżet Elementora <b>Focus Portfolio – Zdjęcia</b> (także blok o tej nazwie i shortcode <code>[focus_photos]</code>) pokazuje kilka do 12 zdjęć z portfolio. <b>Wybór zdjęć</b>:</p>
+<ul>
+	<li><b>Losowo</b>: z całej galerii albo z wybranych kategorii, katalogów i okresu; każde zdjęcie najwyżej raz.</li>
+	<li><b>Wyróżnione</b>: losowo spośród zdjęć z gwiazdką i okładek.</li>
+	<li><b>Po jednym z ostatnich wydarzeń</b>: każde zdjęcie z innej, najnowszej fotorelacji.</li>
+	<li><b>Po kolei, jak w katalogach</b>: bez losowania, np. z jednego wybranego wydarzenia.</li>
+	<li><b>Konkretne zdjęcia</b>: wybierasz je w widżecie (wpisz fragment nazwy wydarzenia albo pliku).</li>
+</ul>
+<p>Zawsze pomijane są ukryte kategorie i wydarzenia oraz zdjęcia, których miniatura jeszcze się nie zrobiła. W widżecie można też wykluczyć autorów i wydarzenia, wybrać orientację albo tylko zdjęcia z gwiazdką.</p>
+<p><b>Losowanie i cache.</b> Wylosowane zdjęcia (najwyżej 12) są zapamiętywane i zmieniają się przy każdym wyświetleniu, co 1, 6 albo 24 godziny albo ręcznie. Opcja <b>Bez powtórek między losowaniami</b> („worek”, domyślnie włączona) sprawia, że kolejne losowania biorą jeszcze niepokazane zdjęcia; po pokazaniu wszystkich zaczyna się od nowa. Nowy skan katalogów i przycisk <b>Wyczyść cache zdjęć</b> (Wygląd) wymuszają nowe losowanie.</p>
+<div class="tip">Strona główna jest zapisywana w cache przez LiteSpeed, więc odwiedzający widzi to samo losowanie, dopóki LiteSpeed nie odświeży strony. Przy odświeżaniu co 1/6/24 h widżet sam skraca czas życia strony w cache do następnego losowania. Żeby zdjęcia zmieniały się przy każdym wejściu mimo cache, włącz <b>Tasuj w przeglądarce</b>: przeglądarka miesza 12 zapisanych zdjęć i pokazuje z nich tyle, ile mieści się w wierszach. Przycisk <b>Losuj ponownie</b> robi to samo na żądanie.</div>
+<p><b>Kliknięcie</b>: fotorelacja otwarta od razu na tym zdjęciu (domyślnie), powiększenie na miejscu z linkiem do fotorelacji, sama fotorelacja albo bez linku. <b>Widoki</b>: wypełnione wiersze z lekkim chaosem (domyślnie: 2 × 5 na komputerze, 3 × 2 na telefonie), masonry, siatka, kolaż, pasek przewijany. Programista może dodać własny widok filtrem <code>fp_photos_views</code>.</p>
+
+<h2>11. Uprawnienia</h2>
+<table>
+	<tr><th>Poziom</th><th>Co może</th></tr>
+	<tr><td><b>Podgląd</b></td><td>Ogląda panel, Eksplorator, statystyki i problemy. Niczego nie zmienia.</td></tr>
+	<tr><td><b>Redakcja</b></td><td>Wgrywa, przenosi, zmienia nazwy, usuwa do kosza i przywraca w katalogu źródłowym; ustawia autorów, okładki, gwiazdki, kolejność; prowadzi rejestr fotografów; OCR; miniatury.</td></tr>
+	<tr><td><b>Administracja</b></td><td>Wszystko powyżej oraz: katalog źródłowy, strona portfolio, Struktura, Wygląd, Uprawnienia, trwałe usuwanie z kosza.</td></tr>
+</table>
+<p>Poziomy przypisujesz rolom w <b>Ustawienia → Uprawnienia</b>. Gotowa rola <b>„Redaktor portfolio”</b> ma Podgląd i Redakcję. Konkretnym osobom nadajesz ją w <b>Użytkownicy</b>. Administrator ma zawsze wszystko.</p>
+
+<h2>12. Dobre praktyki i pytania</h2>
+<ul>
+	<li>Nazywaj miesiące z rokiem: <code>2026-11 Listopad</code>. Jedno wydarzenie = jeden katalog.</li>
+	<li>Ustaw autora w aparacie lub Lightroomie (pole Artist), a eksportuj w JPG o dłuższym boku do ok. 4000 px. Mniejsze pliki szybciej się wgrywają, a jakość na stronie jest ta sama.</li>
+	<li>Nie wrzucaj zdjęć portfolio do Biblioteki mediów: tworzy kopie w kilku rozmiarach, które tylko zajmują miejsce.</li>
+	<li>Po większym imporcie kliknij na Pulpicie <b>Wygeneruj brakujące miniatury</b>: pierwsze wejścia na stronę będą szybsze.</li>
+</ul>
+<h3>Zdjęcia nie pojawiają się na stronie</h3>
+<p>Sprawdź „Do uporządkowania” i Pulpit („Skanuj teraz”). Katalog zaczynający się od <code>__</code> albo ukryty we Właściwościach nie jest pokazywany.</p>
+<h3>Zmieniłem nazwę katalogu i zniknęły okładki</h3>
+<p>Przy zmianie nazwy w Eksploratorze odwołania są poprawiane automatycznie. Przy zmianie przez FTP dane w <code>_portfolio.json</code> wewnątrz katalogu zostają, ale okładki kategorii wskazujące ten katalog trzeba wybrać ponownie.</p>
+<h3>Zła data albo zły rok</h3>
+<p>W Eksploratorze → Właściwości katalogu wpisz datę, albo popraw nazwę katalogu na <code>RRRR-MM Miesiąc</code>.</p>
+
+</div>
+</body>
+</html>

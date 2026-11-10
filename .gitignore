@@ -1,0 +1,13 @@
+# paczki do instalacji (tools/build-zip.ps1)
+dist/
+*.zip
+
+# pliki tymczasowe i systemowe
+*.tmp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# dane logowania nigdy do repozytorium
+.vscode/sftp.json
+.env
