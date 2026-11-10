@@ -1,16 +1,16 @@
-# paczki do instalacji (tools/build-zip.ps1)
+# install packages (tools/build-zip.ps1)
 dist/
 *.zip
 
-# pliki tymczasowe i systemowe
+# temporary and system files
 *.tmp
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# dane logowania nigdy do repozytorium
+# credentials never go into the repository
 .vscode/sftp.json
 .env
 
-# notatki lokalne (praca z lustrem FTP, wydania, testy)
+# local maintainer notes
 NOTATKI.md

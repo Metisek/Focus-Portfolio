@@ -1,6 +1,6 @@
-# Pliki, które nie trafiają do paczki wtyczki ani na serwer.
-# Czytają je: .github/workflows/release.yml, tools/build-zip.ps1, tools/sync-to-site.ps1.
-# Wpis z "/" na końcu = katalog (na dowolnym poziomie), bez = plik (można użyć * i ?).
+# Files that never go into the plugin package or onto the server.
+# Read by .github/workflows/release.yml, tools/build-zip.ps1 and tools/sync-to-site.ps1.
+# An entry ending with "/" is a directory (at any level); otherwise a file name (* and ? allowed).
 .git/
 .github/
 .vscode/
