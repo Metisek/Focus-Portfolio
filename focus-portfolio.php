@@ -1,6 +1,7 @@
 <?php
 /**
  * Plugin Name:       Focus Portfolio
+ * Plugin URI:        https://github.com/Metisek/Focus-Portfolio
  * Description:       Portfolio zdjęć czytane prosto z folderu na hostingu (kategorie → wydarzenia → zdjęcia), z automatycznym skanowaniem, miniaturami WebP i importem zdjęć.
  * Version:           1.1
  * Requires at least: 6.0
@@ -8,6 +9,7 @@
  * Author:            Klub Filmowo-Fotograficzny Focus
  * Text Domain:       focus-portfolio
  * License:           GPL-2.0-or-later
+ * Update URI:        https://github.com/Metisek/Focus-Portfolio
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -16,6 +18,8 @@ define( 'FP_VERSION', '1.1' );
 define( 'FP_FILE', __FILE__ );
 define( 'FP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FP_URL', plugin_dir_url( __FILE__ ) );
+define( 'FP_REPO', 'https://github.com/Metisek/Focus-Portfolio/' );
+define( 'FP_TIP_URL', 'https://buycoffee.to/metis' );
 
 /** Wersja pliku CSS/JS dla przeglądarki: wersja wtyczki + data zmiany pliku (nowy plik = brak starej kopii w pamięci podręcznej). */
 function fp_ver( $rel ) {
@@ -37,6 +41,7 @@ require_once FP_DIR . 'includes/class-fp-photos-source.php';
 require_once FP_DIR . 'includes/class-fp-photos-picker.php';
 require_once FP_DIR . 'includes/class-fp-photos-views.php';
 require_once FP_DIR . 'includes/class-fp-photos.php';
+require_once FP_DIR . 'includes/class-fp-updates.php';
 
 if ( is_admin() ) {
 	require_once FP_DIR . 'includes/class-fp-importer.php';
@@ -51,6 +56,7 @@ add_action( 'init', array( 'FP_Settings', 'maybe_upgrade' ), 5 );
 FP_Frontend::init();
 FP_Embeds::init();
 FP_Photos::init();
+FP_Updates::init();
 
 add_filter( 'cron_schedules', function ( $s ) {
 	$s['fp_quarter'] = array( 'interval' => 15 * MINUTE_IN_SECONDS, 'display' => 'Co 15 minut (Focus Portfolio)' );

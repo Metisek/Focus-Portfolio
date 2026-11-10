@@ -1,0 +1,16 @@
+# Pliki, które nie trafiają do paczki wtyczki ani na serwer.
+# Czytają je: .github/workflows/release.yml, tools/build-zip.ps1, tools/sync-to-site.ps1.
+# Wpis z "/" na końcu = katalog (na dowolnym poziomie), bez = plik (można użyć * i ?).
+.git/
+.github/
+.vscode/
+tools/
+dist/
+build/
+.gitignore
+.gitattributes
+.distignore
+README.md
+CHANGELOG.md
+*.zip
+*.tmp

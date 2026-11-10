@@ -4,6 +4,10 @@ Wtyczka WordPress: portfolio zdjęć czytane prosto z folderu na hostingu (kateg
 
 Działa na klubfocus.pl (motyw Phlox + Elementor, LiteSpeed). Instrukcja dla redaktorów: [docs/instrukcja.pdf](docs/instrukcja.pdf).
 
+**Instalacja:** pobierz `focus-portfolio-X.Y.zip` z [najnowszego wydania](https://github.com/Metisek/Focus-Portfolio/releases/latest) i wgraj w *Wtyczki → Dodaj nową → Wyślij wtyczkę na serwer*. Kolejne wersje pojawią się w WordPressie jako zwykła aktualizacja.
+
+Wtyczka jest darmowa. Jeśli Ci się przydaje: [☕ postaw kawę](https://buycoffee.to/metis).
+
 ## Co gdzie jest
 
 | Ścieżka | Zawartość |
@@ -15,11 +19,14 @@ Działa na klubfocus.pl (motyw Phlox + Elementor, LiteSpeed). Instrukcja dla red
 | `includes/class-fp-fs.php`, `admin/view-explorer.php` | Eksplorator (pliki, kosz `__kosz`) |
 | `includes/class-fp-photos*.php` | widżet „Focus Portfolio – Zdjęcia” (losowe, z folderu, wybrane, najlepsze, z wydarzeń) |
 | `includes/class-fp-elementor-widget.php`, `class-fp-embeds.php` | widżet Elementora portfolio, blok, shortcode |
+| `includes/class-fp-updates.php`, `vendor/plugin-update-checker/` | aktualizacje z wydań na GitHubie ([Plugin Update Checker](https://github.com/YahnisElsts/plugin-update-checker), MIT) i linki na liście wtyczek |
 | `includes/class-fp-i18n.php`, `languages/*.php` | tłumaczenia tekstów dla odwiedzających (EN, DE, ES, FR, IT); panel jest po polsku |
 | `includes/admin/view-*.php` | ekrany panelu |
 | `assets/` | CSS i JS (bez etapu budowania, pliki edytuje się wprost) |
 | `docs/` | instrukcja HTML i PDF |
 | `tools/` | skrypty pomocnicze, nie trafiają na serwer |
+| `.distignore` | lista plików pomijanych w paczce i na serwerze (wspólna dla skryptów i wydań) |
+| `.github/workflows/release.yml` | budowanie paczki i wydania po wypchnięciu tagu |
 
 ## Praca z repozytorium
 
@@ -34,17 +41,36 @@ To repozytorium jest źródłem kodu. Kopia na serwerze i w lustrze FTP (`KFF_Fo
    Domyślnie celem jest `..\KFF_Focus_FTP\wp-content\plugins\focus-portfolio` (inną ścieżkę podasz w `-Target`). Skrypt robi z celu wierną kopię repozytorium: pliki, których tu nie ma, zostaną tam usunięte. Zmian nie rób więc bezpośrednio w lustrze.
 3. Wgrywasz zmienione pliki na serwer, np. z VS Code (rozszerzenie SFTP w lustrze: prawy klik → *Upload*).
 
+Od wersji z aktualizacjami z GitHuba punkty 2–3 są potrzebne tylko do szybkich poprawek bez wydania; zwykle wystarczy wydać nową wersję i kliknąć „Aktualizuj” w panelu.
+
 Przy większych zmianach wgrywaj najpierw nowe pliki (np. nowe klasy z `includes/`), a dopiero potem `focus-portfolio.php`, który je wczytuje. Inaczej strona może przez chwilę zgłaszać błąd.
 
 Haseł i danych FTP nie trzymaj w tym repozytorium. Zostają w `KFF_Focus_FTP/.vscode/sftp.json`.
 
-## Instalacja na innej stronie
+## Wydania i aktualizacje
+
+Strony z zainstalowaną wtyczką co 12 godzin sprawdzają [wydania w repozytorium](https://github.com/Metisek/Focus-Portfolio/releases) i pokazują nową wersję w *Wtyczki* (można też kliknąć „Sprawdź aktualizacje” przy wtyczce). Wydaniem jest tag, nie każdy commit do `main`: dopóki nie wydasz nowej wersji, strony dalej działają na poprzedniej.
+
+Nowe wydanie:
+
+1. Podnieś wersję w `focus-portfolio.php`: w nagłówku (`Version:`) i w `FP_VERSION`, np. `1.2`. WordPress widzi tylko wyższy numer.
+2. Dopisz zmiany do `CHANGELOG.md`, zrób commit i `git push`.
+3. Utwórz i wypchnij tag:
+   ```powershell
+   git tag v1.2
+   git push origin v1.2
+   ```
+4. GitHub Action (*Actions → Wydanie*) sprawdza, czy tag zgadza się z wersją, buduje `focus-portfolio-1.2.zip` i publikuje wydanie. Jeśli numery się nie zgadzają, wydanie nie powstaje.
+
+Aktualizacja podmienia cały katalog wtyczki. Dane są gdzie indziej (ustawienia w bazie, miniatury w `uploads`, `_portfolio.json` w folderach ze zdjęciami), więc nic nie ginie. Nie zapisuj niczego w katalogu wtyczki.
+
+## Instalacja na innej stronie (bez GitHuba)
 
 ```powershell
 .\tools\build-zip.ps1
 ```
 
-Skrypt tworzy `dist\focus-portfolio-<wersja>.zip` z katalogiem `focus-portfolio/` w środku. Plik instalujesz w WordPressie: *Wtyczki → Dodaj nową → Wyślij wtyczkę na serwer*. Potem ustawiasz *Focus Portfolio → Ustawienia → Folder źródłowy* i stronę portfolio.
+Skrypt tworzy `dist\focus-portfolio-<wersja>.zip` z katalogiem `focus-portfolio/` w środku (to samo co w wydaniu na GitHubie). Plik instalujesz w WordPressie: *Wtyczki → Dodaj nową → Wyślij wtyczkę na serwer*. Potem ustawiasz *Focus Portfolio → Ustawienia → Folder źródłowy* i stronę portfolio.
 
 ## Wersje i migracje
 
@@ -73,6 +99,10 @@ Drobne poprawki samej strony klubfocus.pl są w lustrze FTP w `wp-content/mu-plu
 - `focus-phlox-preloader-fix.php`: obejście błędu preloadera Phlox;
 - `focus-site-tweaks.php`: odstępy w stopce.
 
+## Wsparcie
+
+Błędy i pomysły: [Issues](https://github.com/Metisek/Focus-Portfolio/issues). Napiwek: [buycoffee.to/metis](https://buycoffee.to/metis).
+
 ## Licencja
 
-GPL-2.0-or-later.
+GPL-2.0-or-later. Dołączona biblioteka Plugin Update Checker: MIT (`vendor/plugin-update-checker/license.txt`).

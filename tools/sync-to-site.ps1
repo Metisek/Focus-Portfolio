@@ -5,7 +5,7 @@
   Without -Apply it only lists what would change (nothing is written).
   With -Apply the target becomes an exact copy of the repository: files that
   are not in the repository are removed from the target. Development files
-  (git, tools, README, CHANGELOG, dist) are never copied.
+  listed in .distignore are never copied.
 .EXAMPLE
   .\tools\sync-to-site.ps1
   .\tools\sync-to-site.ps1 -Apply
@@ -26,8 +26,10 @@ if (-not (Test-Path (Split-Path $Target -Parent))) {
     Write-Error "Target parent folder does not exist: $(Split-Path $Target -Parent)"; exit 1
 }
 
-$excludeDirs  = @('.git', '.vscode', 'tools', 'dist')
-$excludeFiles = @('.gitignore', '.gitattributes', 'README.md', 'CHANGELOG.md', '*.tmp', '*.zip')
+# same exclusion list as the zip and the GitHub release (.distignore)
+$rules = Get-Content (Join-Path $repo '.distignore') -Encoding UTF8 | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') }
+$excludeDirs  = @($rules | Where-Object { $_.EndsWith('/') } | ForEach-Object { $_.TrimEnd('/') })
+$excludeFiles = @($rules | Where-Object { -not $_.EndsWith('/') })
 
 $rcArgs = @($repo, $Target, '/MIR', '/FFT', '/NJH', '/NJS', '/NDL', '/NP', '/XD') + $excludeDirs + @('/XF') + $excludeFiles
 if (-not $Apply) { $rcArgs += '/L' }

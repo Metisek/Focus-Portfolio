@@ -1,0 +1,42 @@
+# Wydanie wtyczki: po wypchnięciu tagu "vX.Y" (np. git tag v1.2 && git push origin v1.2)
+# buduje focus-portfolio-X.Y.zip (bez plików z .distignore) i publikuje go jako wydanie na GitHubie.
+# Strony z zainstalowaną wtyczką widzą je w Wtyczki → „Dostępna aktualizacja”.
+name: Wydanie
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sprawdź numer wersji
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          HEADER=$(grep -m1 -oP '^\s*\*\s*Version:\s*\K\S+' focus-portfolio.php)
+          CONST=$(grep -m1 -oP "define\( 'FP_VERSION', '\K[^']+" focus-portfolio.php)
+          echo "tag: $TAG, Version: $HEADER, FP_VERSION: $CONST"
+          if [ "$TAG" != "$HEADER" ] || [ "$TAG" != "$CONST" ]; then
+            echo "::error::Tag v$TAG nie zgadza się z wersją w focus-portfolio.php (Version: $HEADER, FP_VERSION: $CONST)"
+            exit 1
+          fi
+
+      - name: Zbuduj paczkę
+        run: |
+          ZIP="focus-portfolio-${GITHUB_REF_NAME#v}.zip"
+          mkdir -p build/focus-portfolio
+          rsync -a --exclude-from=.distignore ./ build/focus-portfolio/
+          (cd build && zip -qr "../$ZIP" focus-portfolio)
+          unzip -l "$ZIP" | tail -1
+
+      - name: Opublikuj wydanie
+        uses: softprops/action-gh-release@v2
+        with:
+          files: focus-portfolio-*.zip
+          generate_release_notes: true

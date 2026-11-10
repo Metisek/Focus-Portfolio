@@ -2,6 +2,11 @@
 
 Etykieta wersji została na „1.1”. Kolejne wydania na klubfocus.pl są opisane według dat.
 
+## Niewydane
+
+- Aktualizacje z wydań na GitHubie (Plugin Update Checker 5.7, nagłówek `Update URI`); wydanie budowane przez GitHub Action z tagu `vX.Y`.
+- Linki „GitHub” i „☕ Postaw kawę” na liście wtyczek i na ekranie Pomoc.
+
 ## 2026-11-10 (schemat bazy 1.3.0)
 
 - **Kolory i układ**
