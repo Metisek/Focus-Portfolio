@@ -1,9 +1,8 @@
 <?php
 /**
  * Plugin Name:       Focus Portfolio
- * Plugin URI:        https://github.com/Metisek/Focus-Portfolio
  * Description:       Portfolio zdjęć czytane prosto z folderu na hostingu (kategorie → wydarzenia → zdjęcia), z automatycznym skanowaniem, miniaturami WebP i importem zdjęć.
- * Version:           1.1
+ * Version:           1.1.1
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Klub Filmowo-Fotograficzny Focus
@@ -14,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'FP_VERSION', '1.1' );
+define( 'FP_VERSION', '1.1.1' );
 define( 'FP_FILE', __FILE__ );
 define( 'FP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FP_URL', plugin_dir_url( __FILE__ ) );

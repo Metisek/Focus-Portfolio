@@ -1,6 +1,7 @@
 # Plugin release: pushing a "vX.Y" tag (e.g. git tag v1.2 && git push origin v1.2)
 # builds focus-portfolio-X.Y.zip (without the files listed in .distignore) and publishes it as a GitHub release.
 # Sites with the plugin installed then see it under Plugins → "Update available".
+# The release notes (shown in WordPress under "View details") are the CHANGELOG.md section for that version.
 name: Release
 
 on:
@@ -35,8 +36,15 @@ jobs:
           (cd build && zip -qr "../$ZIP" focus-portfolio)
           unzip -l "$ZIP" | tail -1
 
+      - name: Release notes from CHANGELOG.md
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          awk -v v="$V" 'f && /^## / {exit} f {print} index($0, "## " v " ") == 1 || $0 == "## " v {f=1}' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "Focus Portfolio $V" > notes.md
+          cat notes.md
+
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           files: focus-portfolio-*.zip
-          generate_release_notes: true
+          body_path: notes.md

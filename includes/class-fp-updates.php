@@ -1,6 +1,6 @@
 <?php
 /**
- * Aktualizacje z wydań na GitHubie i linki „GitHub” / „Postaw kawę” na liście wtyczek.
+ * Aktualizacje z wydań na GitHubie i link „Postaw kawę” na liście wtyczek.
  *
  * Nowe wydanie = tag „vX.Y” w repozytorium (GitHub Action buduje zip i dołącza go do wydania).
  * WordPress sprawdza je co 12 godzin i pokazuje w Wtyczki → „Dostępna aktualizacja”, jak przy wtyczkach z WordPress.org.
@@ -45,7 +45,6 @@ class FP_Updates {
 
 	public static function row_links( $links, $file ) {
 		if ( plugin_basename( FP_FILE ) === $file ) {
-			$links[] = '<a href="' . esc_url( FP_REPO ) . '" target="_blank" rel="noopener">GitHub</a>';
 			$links[] = '<a href="' . esc_url( FP_TIP_URL ) . '" target="_blank" rel="noopener">☕ Postaw kawę</a>';
 		}
 		return $links;

@@ -2,6 +2,11 @@
 
 Changes from before the first GitHub release are listed by date; the version label stayed at "1.1" during that time.
 
+## 1.1.1 (2026-11-10)
+
+- Removed the GitHub links from the WordPress dashboard (plugin list, manual screen, "View details" dialog).
+- Release notes now come from this changelog.
+
 ## 1.1 (2026-11-10, first GitHub release)
 
 - Updates from GitHub releases (Plugin Update Checker 5.7, `Update URI` header). A GitHub Action builds the release from a `vX.Y` tag.
