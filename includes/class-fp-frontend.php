@@ -519,16 +519,21 @@ class FP_Frontend {
 		$list = function ( $k ) use ( $get ) {
 			return isset( $get[ $k ] ) ? array_values( array_filter( array_map( 'sanitize_title', (array) $get[ $k ] ) ) ) : array();
 		};
-		$sort = isset( $get['sort'] ) && isset( self::photo_sorts()[ $get['sort'] ] ) ? $get['sort'] : $default_sort;
-		$na   = isset( $get['na'] ) && in_array( (string) $get['na'], array( '20', '50', '100' ), true ) ? (int) $get['na'] : (int) $v['per_page'];
+		// Pojedyncze parametry: tablica (np. ?sort[]=x) lub inny nie-tekst = brak parametru (bez błędu 500 w PHP 8).
+		$one  = function ( $k ) use ( $get ) {
+			return isset( $get[ $k ] ) && is_scalar( $get[ $k ] ) ? (string) $get[ $k ] : '';
+		};
+		$sort = $one( 'sort' );
+		$sort = '' !== $sort && array_key_exists( $sort, self::photo_sorts() ) ? $sort : $default_sort;
+		$na   = in_array( $one( 'na' ), array( '20', '50', '100' ), true ) ? (int) $one( 'na' ) : (int) $v['per_page'];
 		return array(
 			'okres'  => $list( 'okres' ),
 			'autor'  => $list( 'autor' ),
 			'sort'   => $sort,
 			'dsort'  => $default_sort,
 			'na'     => $na,
-			'strona' => max( 1, isset( $get['strona'] ) ? (int) $get['strona'] : 1 ),
-			'q'      => isset( $get['q'] ) ? sanitize_text_field( $get['q'] ) : '',
+			'strona' => max( 1, (int) $one( 'strona' ) ),
+			'q'      => sanitize_text_field( $one( 'q' ) ),
 		);
 	}
 
