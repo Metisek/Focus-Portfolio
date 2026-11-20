@@ -2,6 +2,10 @@
 
 Changes from before the first GitHub release are listed by date; the version label stayed at "1.1" during that time.
 
+## 1.1.2 (unreleased)
+
+- The 15-minute scan (`fp_cron`) is now checked on every page load and rescheduled if it is missing. Before, it was only scheduled on activation, so an update from GitHub never brought back a lost event.
+
 ## 1.1.1 (2026-11-10)
 
 - Removed the GitHub links from the WordPress dashboard (plugin list, manual screen, "View details" dialog).

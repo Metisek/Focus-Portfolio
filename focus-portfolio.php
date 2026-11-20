@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Focus Portfolio
  * Description:       Portfolio zdjęć czytane prosto z folderu na hostingu (kategorie → wydarzenia → zdjęcia), z automatycznym skanowaniem, miniaturami WebP i importem zdjęć.
- * Version:           1.1.1
+ * Version:           1.1.2
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Klub Filmowo-Fotograficzny Focus
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'FP_VERSION', '1.1.1' );
+define( 'FP_VERSION', '1.1.2' );
 define( 'FP_FILE', __FILE__ );
 define( 'FP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FP_URL', plugin_dir_url( __FILE__ ) );
@@ -67,12 +67,22 @@ add_action( 'fp_cron', function () {
 	FP_Thumbs::process_batch( (int) FP_Settings::get( 'cron_batch' ), 40 );
 } );
 
-register_activation_hook( __FILE__, function () {
-	FP_Settings::ensure_defaults();
-	FP_Caps::install();
+/**
+ * Planuje skanowanie co 15 minut, jeśli zdarzenia brakuje.
+ * Hak aktywacji nie uruchamia się przy aktualizacji z GitHuba, więc sprawdzamy to przy każdym `init`
+ * (odczyt z opcji `cron`, która i tak jest w pamięci) – zgubione zdarzenie wraca samo.
+ */
+function fp_ensure_cron() {
 	if ( ! wp_next_scheduled( 'fp_cron' ) ) {
 		wp_schedule_event( time() + 60, 'fp_quarter', 'fp_cron' );
 	}
+}
+add_action( 'init', 'fp_ensure_cron', 20 );
+
+register_activation_hook( __FILE__, function () {
+	FP_Settings::ensure_defaults();
+	FP_Caps::install();
+	fp_ensure_cron();
 	update_option( 'fp_flush_rewrite', 1 );
 } );
 
