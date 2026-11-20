@@ -908,16 +908,29 @@ class FP_FS {
 
 	public static function ajax() {
 		check_ajax_referer( 'fp_admin', 'nonce' );
-		$op   = isset( $_POST['op'] ) ? sanitize_key( $_POST['op'] ) : ''; // phpcs:ignore
+		$op   = isset( $_POST['op'] ) && is_string( $_POST['op'] ) ? sanitize_key( $_POST['op'] ) : ''; // phpcs:ignore
 		$read = array( 'list', 'check', 'dirs', 'trash_list', 'inbox' );
 		$adm  = array( 'purge', 'empty_trash' );
 		$need = in_array( $op, $read, true ) ? FP_Caps::VIEW : ( in_array( $op, $adm, true ) ? FP_Caps::ADMIN : FP_Caps::EDIT );
 		if ( ! FP_Caps::can( $need ) ) {
 			wp_send_json_error( array( 'message' => 'Brak uprawnień do tej operacji.' ), 403 );
 		}
+		// źródło z plikami Biblioteki mediów (np. cały uploads, ustawiony przed 1.1.2): bez przenoszenia, zmiany nazw i kosza
+		if ( in_array( $op, array( 'rename', 'move', 'trash', 'restore', 'purge', 'empty_trash' ), true ) ) {
+			$why = FP_Settings::source_media_conflict();
+			if ( '' !== $why ) {
+				wp_send_json_error( array( 'message' => 'Zablokowane: katalog źródłowy obejmuje pliki Biblioteki mediów WordPressa (' . $why . '). Przenoszenie, zmiana nazw i kosz mogłyby zepsuć wpisy i strony. Ustaw osobny katalog na portfolio w Ustawieniach.' ) );
+			}
+		}
 		$p     = wp_unslash( $_POST ); // phpcs:ignore
+		// pola tekstowe tylko jako tekst: tablica (np. name[]=…) kończyła się błędem krytycznym w funkcjach na napisach
+		foreach ( array( 'path', 'name', 'dest', 'year', 'group', 'value', 'action2' ) as $k ) {
+			if ( isset( $p[ $k ] ) && ! is_scalar( $p[ $k ] ) ) {
+				unset( $p[ $k ] );
+			}
+		}
 		$path  = isset( $p['path'] ) ? (string) $p['path'] : '';
-		$items = isset( $p['items'] ) ? array_map( 'strval', (array) $p['items'] ) : array();
+		$items = isset( $p['items'] ) ? array_map( 'strval', array_filter( (array) $p['items'], 'is_scalar' ) ) : array();
 		$r     = null;
 		$rescan = true;
 		switch ( $op ) {

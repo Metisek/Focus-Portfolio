@@ -6,8 +6,9 @@
 defined( 'ABSPATH' ) || exit;
 
 $s    = FP_Settings::all();
-$tab  = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'source'; // phpcs:ignore
+$tab  = FP_Admin::qkey( 'tab' );
 $tabs = array( 'source' => 'Źródło i strona', 'thumbs' => 'Miniatury', 'perms' => 'Uprawnienia' );
+$tab  = isset( $tabs[ $tab ] ) ? $tab : 'source';
 ?>
 <nav class="nav-tab-wrapper fp-tabs">
 	<?php foreach ( $tabs as $k => $l ) : ?>
@@ -21,12 +22,14 @@ $tabs = array( 'source' => 'Źródło i strona', 'thumbs' => 'Miniatury', 'perms
 	<?php wp_nonce_field( 'fp_save_settings' ); ?>
 
 	<?php FP_Admin::card( 'source', 'Katalog źródłowy' ); ?>
-		<p class="description">Dowolny katalog w <code>wp-content</code> (poza kodem strony: plugins, themes, mu-plugins, cache…). W środku: katalogi kategorii, np. <code>RELACJE/</code>, <code>SESJE/</code>.
+		<p class="description">Dowolny katalog w <code>wp-content</code> (poza kodem strony: plugins, themes, mu-plugins, cache… i poza Biblioteką mediów: cały uploads, uploads/2025 itp.). W środku: katalogi kategorii, np. <code>RELACJE/</code>, <code>SESJE/</code>.
 			Osoby z uprawnieniem „Redakcja” mogą wgrywać i porządkować zdjęcia tylko w tym katalogu.</p>
 		<div class="fp-field">
 			<label for="fp-source">Ścieżka względem wp-content</label>
 			<input type="text" id="fp-source" name="fp[source]" value="<?php echo esc_attr( $s['source'] ); ?>" class="regular-text code">
-			<?php if ( FP_Settings::source_path() ) : ?>
+			<?php if ( FP_Settings::source_path() && '' !== FP_Settings::source_media_conflict() ) : ?>
+				<p class="fp-warn">Ten katalog obejmuje pliki Biblioteki mediów WordPressa (<?php echo esc_html( FP_Settings::source_media_conflict() ); ?>), więc Eksplorator nie przeniesie ani nie wyrzuci w nim niczego do kosza. Wybierz osobny katalog na portfolio.</p>
+			<?php elseif ( FP_Settings::source_path() ) : ?>
 				<p class="fp-ok">Katalog istnieje · FTP: <code><?php echo esc_html( '/wp-content/' . trim( $s['source'], '/' ) . '/' ); ?></code></p>
 			<?php else : ?>
 				<p class="fp-warn">Taki katalog nie istnieje albo nie może być źródłem.</p>
@@ -36,6 +39,11 @@ $tabs = array( 'source' => 'Źródło i strona', 'thumbs' => 'Miniatury', 'perms
 			<div class="fp-dirpick-head"><span class="dashicons dashicons-category"></span> wp-content</div>
 			<ul class="fp-dirpick-tree" data-dir=""></ul>
 		</div>
+		<?php if ( FP_Settings::source_path() && ! FP_Protect::htaccess_works() ) : ?>
+			<p class="fp-warn">Serwer nie korzysta z plików .htaccess (np. nginx), więc kosz <code>__kosz</code>, katalogi „__”, pliki <code>_portfolio.json</code> i ukryte wydarzenia da się otworzyć bezpośrednim adresem.
+				Poproś administratora serwera o dodanie reguły: <code><?php echo esc_html( FP_Protect::nginx_rule() ); ?></code>
+				Reguła obejmuje kosz, katalogi „__” i pliki .json. Ukryte wydarzenia i kategorie zablokujesz tak samo, przenosząc je do katalogu o nazwie zaczynającej się od „__”.</p>
+		<?php endif; ?>
 		<p class="description">Kliknij katalog w drzewie, żeby go wybrać. Wyszarzone katalogi nie mogą być źródłem. Liczba obok to zdjęcia bezpośrednio w katalogu.</p>
 	<?php FP_Admin::card_end(); ?>
 

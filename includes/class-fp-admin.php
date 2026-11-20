@@ -46,13 +46,21 @@ class FP_Admin {
 		// stary adres z wersji 1.x (Ustawienia → Focus Portfolio, Wygląd → Portfolio)
 		add_action( 'admin_init', function () {
 			global $pagenow;
-			$page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : ''; // phpcs:ignore
+			$page = self::qkey( 'page' );
 			if ( ( 'options-general.php' === $pagenow && self::SLUG === $page ) || ( 'themes.php' === $pagenow && self::SLUG . '-view' === $page ) ) {
 				wp_safe_redirect( self::url( 'options-general.php' === $pagenow ? '' : 'view' ) );
 				exit;
 			}
 		} );
 		add_action( 'admin_notices', array( __CLASS__, 'elementor_notice' ) );
+	}
+
+	/**
+	 * Parametr adresu jako klucz (sanitize_key) albo '' gdy go nie ma lub jest tablicą (?page[]=…).
+	 * sanitize_key() w WordPressie 6.0 wywołuje strtolower() bez sprawdzenia typu, więc tablica kończyła się błędem krytycznym.
+	 */
+	public static function qkey( $name ) {
+		return isset( $_GET[ $name ] ) && is_scalar( $_GET[ $name ] ) ? sanitize_key( wp_unslash( $_GET[ $name ] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 	}
 
 	public static function url( $page = '', $args = array() ) {
@@ -81,7 +89,7 @@ class FP_Admin {
 	}
 
 	public static function current() {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore
+		$page = self::qkey( 'page' );
 		$all  = self::pages();
 		return isset( $all[ $page ] ) ? array( $page, $all[ $page ] ) : array( '', null );
 	}
@@ -211,7 +219,7 @@ class FP_Admin {
 	public static function elementor_notice() {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		$pid    = (int) FP_Settings::get( 'page_id' );
-		if ( ! $screen || 'page' !== $screen->id || ! isset( $_GET['post'] ) || (int) $_GET['post'] !== $pid || 'missing' !== self::elementor_state( $pid ) ) { // phpcs:ignore
+		if ( ! $screen || 'page' !== $screen->id || ! isset( $_GET['post'] ) || ! is_scalar( $_GET['post'] ) || (int) $_GET['post'] !== $pid || 'missing' !== self::elementor_state( $pid ) ) { // phpcs:ignore
 			return;
 		}
 		echo '<div class="notice notice-info"><p>To jest strona portfolio. Wstaw na nią widżet <b>Focus Portfolio</b> w Elementorze, żeby w edytorze widzieć portfolio. <a href="' . esc_url( self::url( 'settings' ) ) . '">Zrób to automatycznie</a></p></div>';
@@ -292,18 +300,24 @@ class FP_Admin {
 		self::guard_post( FP_Caps::ADMIN, 'fp_save_settings' );
 		$in  = isset( $_POST['fp'] ) ? (array) wp_unslash( $_POST['fp'] ) : array(); // phpcs:ignore
 		$old = FP_Settings::all();
-		$src = trim( preg_replace( '#\.\.+|[^\p{L}\p{N} _./-]#u', '', str_replace( '\\', '/', (string) ( isset( $in['source'] ) ? $in['source'] : '' ) ) ), '/ ' );
+		$src = trim( preg_replace( '#\.\.+|[^\p{L}\p{N} _./-]#u', '', str_replace( '\\', '/', isset( $in['source'] ) && is_string( $in['source'] ) ? $in['source'] : '' ) ), '/ ' );
 		if ( ! FP_Settings::source_allowed( $src ) || ! is_dir( WP_CONTENT_DIR . '/' . $src ) ) {
 			self::back( 'settings', 'source_bad' );
 		}
+		if ( FP_Settings::media_conflict( $src ) ) {
+			self::back( 'settings', 'source_media' );
+		}
+		delete_transient( 'fp_media_' . md5( $src ) );
+		$ss  = max( 1, min( 12, (int) ( isset( $in['season_start'] ) && is_scalar( $in['season_start'] ) ? $in['season_start'] : 1 ) ) );
+		$ay  = isset( $in['academic_year'] ) && is_scalar( $in['academic_year'] ) && '' !== trim( (string) $in['academic_year'] ) ? (int) $in['academic_year'] : FP_Settings::current_year( $ss ); // puste pole → bieżący rok zdjęć
 		$new = array(
 			'source'        => $src,
 			'page_id'       => absint( isset( $in['page_id'] ) ? $in['page_id'] : 0 ),
-			'academic_year' => max( 2015, min( 2100, (int) ( isset( $in['academic_year'] ) ? $in['academic_year'] : 2025 ) ) ),
-			'season_start'  => max( 1, min( 12, (int) ( isset( $in['season_start'] ) ? $in['season_start'] : 1 ) ) ),
+			'academic_year' => max( 2015, min( 2100, $ay ) ),
+			'season_start'  => $ss,
 			'ignore_artists' => sanitize_textarea_field( isset( $in['ignore_artists'] ) ? $in['ignore_artists'] : '' ),
 			'ocr_skip'      => sanitize_text_field( isset( $in['ocr_skip'] ) ? $in['ocr_skip'] : '' ),
-			'language'      => isset( $in['language'] ) && isset( FP_I18n::LANGS[ $in['language'] ] ) ? $in['language'] : '',
+			'language'      => isset( $in['language'] ) && is_string( $in['language'] ) && isset( FP_I18n::LANGS[ $in['language'] ] ) ? $in['language'] : '',
 		);
 		FP_Settings::update( $new );
 		if ( $new['page_id'] !== (int) $old['page_id'] ) {
@@ -526,7 +540,7 @@ class FP_Admin {
 	/** Podkatalogi w wp-content do wyboru źródła (drzewo ładowane na żądanie). */
 	public static function ajax_dirs() {
 		self::ajax_guard( FP_Caps::ADMIN );
-		$rel  = trim( str_replace( '\\', '/', (string) ( isset( $_POST['dir'] ) ? wp_unslash( $_POST['dir'] ) : '' ) ), '/' ); // phpcs:ignore
+		$rel  = trim( str_replace( '\\', '/', isset( $_POST['dir'] ) && is_string( $_POST['dir'] ) ? wp_unslash( $_POST['dir'] ) : '' ), '/' ); // phpcs:ignore
 		$base = realpath( WP_CONTENT_DIR );
 		$abs  = realpath( WP_CONTENT_DIR . ( '' === $rel ? '' : '/' . $rel ) );
 		if ( ! $abs || 0 !== strpos( $abs, $base ) || false !== strpos( $rel, '..' ) ) {
@@ -541,7 +555,7 @@ class FP_Admin {
 			$out[] = array(
 				'name'    => $f,
 				'path'    => $r,
-				'allowed' => FP_Settings::source_allowed( $r ),
+				'allowed' => FP_Settings::source_allowed( $r ) && ! FP_Settings::media_conflict( $r ),
 				'images'  => count( preg_grep( FP_Scanner::IMG_RE, (array) @scandir( $abs . '/' . $f ) ) ), // phpcs:ignore
 			);
 		}
@@ -629,13 +643,14 @@ class FP_Admin {
 			'saved'      => array( 'success', 'Zapisano.' ),
 			'scanned'    => array( 'success', 'Zapisano i przeskanowano katalog źródłowy.' ),
 			'source_bad' => array( 'error', 'Nie zapisano: takiego katalogu nie ma w wp-content albo nie może być źródłem (np. plugins, themes).' ),
+			'source_media' => array( 'error', 'Nie zapisano: ten katalog obejmuje pliki z Biblioteki mediów WordPressa (np. cały uploads albo uploads/2025). Eksplorator mógłby je przenieść albo wyrzucić do kosza. Wybierz osobny katalog na portfolio, np. uploads/portfolio-focus.' ),
 			'reset'      => array( 'success', 'Miniatury usunięte. Wygeneruj je ponownie na Pulpicie.' ),
 			'elementor'  => array( 'success', 'Wstawiono widżet Focus Portfolio na stronę portfolio. Otwórz ją w Elementorze, żeby ustawić wygląd.' ),
 			'photos_cleared' => array( 'success', 'Wyczyszczono cache zdjęć: przy następnym wyświetleniu widżety wylosują nowe zdjęcia.' ),
 		);
-		$k = isset( $_GET['fp_msg'] ) ? sanitize_key( $_GET['fp_msg'] ) : ''; // phpcs:ignore
+		$k = self::qkey( 'fp_msg' );
 		if ( 'stripped' === $k ) {
-			$map[ $k ] = array( 'success', sprintf( 'Zapisano. Usunięto podpis autora ze zdjęć: %d (przywrócisz go w Eksploratorze).', isset( $_GET['n'] ) ? (int) $_GET['n'] : 0 ) ); // phpcs:ignore
+			$map[ $k ] = array( 'success', sprintf( 'Zapisano. Usunięto podpis autora ze zdjęć: %d (przywrócisz go w Eksploratorze).', isset( $_GET['n'] ) && is_scalar( $_GET['n'] ) ? (int) $_GET['n'] : 0 ) ); // phpcs:ignore
 		}
 		if ( isset( $map[ $k ] ) ) {
 			printf( '<div class="notice notice-%s is-dismissible"><p>%s</p></div>', esc_attr( $map[ $k ][0] ), esc_html( $map[ $k ][1] ) );

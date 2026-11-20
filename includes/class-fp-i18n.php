@@ -30,7 +30,7 @@ class FP_I18n {
 
 	public static function lang() {
 		// ekrany panelu (bez AJAX-a widżetu Elementora) zostają po polsku, żeby nie mieszać języków w jednym zdaniu
-		if ( is_admin() && ! ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && 0 !== strpos( (string) $_REQUEST['action'], 'fp_' ) ) ) { // phpcs:ignore
+		if ( is_admin() && ! ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && is_string( $_REQUEST['action'] ) && 0 !== strpos( $_REQUEST['action'], 'fp_' ) ) ) { // phpcs:ignore
 			return 'pl';
 		}
 		$set = (string) FP_Settings::get( 'language' );

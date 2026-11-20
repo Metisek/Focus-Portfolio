@@ -8,8 +8,9 @@
  *  - folder  : po kolei, jak w katalogach (bez losowania);
  *  - picked  : konkretne zdjęcia w wybranej kolejności.
  * Zawsze najwyżej 12 zdjęć, każde raz (twardy limit). Losowane tryby trzymają w cache tylko identyfikatory:
- * opcja fp_ph_<hash> = [ids, t, gen, bag]; odświeżanie przy każdym renderze, co 1 / 6 / 24 h albo ręcznie,
- * a nowy skan katalogów unieważnia cache (worek zostaje).
+ * opcja fp_ph_<hash> = [ids, t, gen, bag, u]; odświeżanie przy każdym renderze, co 1 / 6 / 24 h albo ręcznie,
+ * a nowy skan katalogów unieważnia cache (worek zostaje). u = ostatnie użycie (zapisywane najwyżej raz na dobę):
+ * po zmianie ustawień widżetu stary klucz nie jest już czytany i znika po UNUSED sekundach (cron, raz na dobę).
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -18,6 +19,7 @@ class FP_Photos_Picker {
 
 	const MAX    = 12;
 	const PREFIX = 'fp_ph_';
+	const UNUSED = 30 * DAY_IN_SECONDS;
 
 	const REFRESH = array( 'render' => 0, '1h' => HOUR_IN_SECONDS, '6h' => 6 * HOUR_IN_SECONDS, '24h' => DAY_IN_SECONDS, 'manual' => -1 );
 
@@ -60,7 +62,7 @@ class FP_Photos_Picker {
 			return array();
 		}
 		$key   = self::key( $s );
-		$st    = wp_parse_args( (array) get_option( $key, array() ), array( 'ids' => array(), 't' => 0, 'gen' => 0, 'bag' => array() ) );
+		$st    = wp_parse_args( (array) get_option( $key, array() ), array( 'ids' => array(), 't' => 0, 'gen' => 0, 'bag' => array(), 'u' => 0 ) );
 		$gen   = (int) FP_Scanner::manifest()['generated'];
 		$valid = array_values( array_filter( (array) $st['ids'], function ( $id ) use ( $pool ) { return isset( $pool[ $id ] ); } ) );
 		$need  = min( self::visible( $s ), 'events' === $s['mode'] ? count( self::events( $pool ) ) : count( $pool ) );
@@ -69,6 +71,10 @@ class FP_Photos_Picker {
 			$st['ids'] = $valid;
 			$st['t']   = time();
 			$st['gen'] = $gen;
+			$st['u']   = time();
+			update_option( $key, $st, false );
+		} elseif ( time() - (int) $st['u'] > DAY_IN_SECONDS ) {
+			$st['u'] = time(); // wciąż używany: nie sprzątać
 			update_option( $key, $st, false );
 		}
 		$out = array();
@@ -147,13 +153,46 @@ class FP_Photos_Picker {
 		return $out;
 	}
 
+	private static function names() {
+		global $wpdb;
+		return (array) $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( self::PREFIX ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	}
+
+	/** Aktualizacja do 1.1.2: dotychczasowe wpisy dostają datę użycia „teraz”, więc znikną dopiero, jeśli przez UNUSED nikt ich nie przeczyta. */
+	public static function stamp_all() {
+		foreach ( self::names() as $n ) {
+			$st = get_option( $n );
+			if ( is_array( $st ) && empty( $st['u'] ) ) {
+				$st['u'] = time();
+				update_option( $n, $st, false );
+			}
+		}
+	}
+
+	/** Usuwa wpisy, których żaden widżet nie czytał od UNUSED (np. po zmianie trybu lub katalogów widżetu). Najwyżej raz na dobę. */
+	public static function cleanup() {
+		if ( get_transient( 'fp_photos_gc' ) ) {
+			return 0;
+		}
+		set_transient( 'fp_photos_gc', 1, DAY_IN_SECONDS );
+		$n = 0;
+		foreach ( self::names() as $name ) {
+			$st   = get_option( $name );
+			$used = is_array( $st ) ? max( isset( $st['u'] ) ? (int) $st['u'] : 0, isset( $st['t'] ) ? (int) $st['t'] : 0 ) : 0;
+			if ( time() - $used > self::UNUSED ) {
+				delete_option( $name );
+				$n++;
+			}
+		}
+		return $n;
+	}
+
 	/** Usuwa cache i worki wszystkich widżetów (nowe losowanie przy następnym wyświetleniu). */
 	public static function clear() {
-		global $wpdb;
-		$names = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( self::PREFIX ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		foreach ( (array) $names as $n ) {
+		$names = self::names();
+		foreach ( $names as $n ) {
 			delete_option( $n ); // przez delete_option, żeby wyczyścić też cache obiektów
 		}
-		return count( (array) $names );
+		return count( $names );
 	}
 }

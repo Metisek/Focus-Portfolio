@@ -33,6 +33,7 @@ require_once FP_DIR . 'includes/class-fp-meta.php';
 require_once FP_DIR . 'includes/class-fp-people.php';
 require_once FP_DIR . 'includes/class-fp-scanner.php';
 require_once FP_DIR . 'includes/class-fp-thumbs.php';
+require_once FP_DIR . 'includes/class-fp-protect.php';
 require_once FP_DIR . 'includes/class-fp-links.php';
 require_once FP_DIR . 'includes/class-fp-frontend.php';
 require_once FP_DIR . 'includes/class-fp-embeds.php';
@@ -51,6 +52,7 @@ if ( is_admin() ) {
 }
 
 FP_Thumbs::init();
+FP_Protect::init();
 add_action( 'init', array( 'FP_Settings', 'maybe_upgrade' ), 5 );
 FP_Frontend::init();
 FP_Embeds::init();
@@ -65,6 +67,7 @@ add_filter( 'cron_schedules', function ( $s ) {
 add_action( 'fp_cron', function () {
 	FP_Scanner::maybe_rescan( true );
 	FP_Thumbs::process_batch( (int) FP_Settings::get( 'cron_batch' ), 40 );
+	FP_Photos_Picker::cleanup(); // nieużywany cache widżetu „Zdjęcia” (raz na dobę)
 } );
 
 /**
