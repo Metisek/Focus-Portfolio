@@ -623,7 +623,8 @@ class FP_FS {
 		$name = FP_Importer::clean_segment( $name );
 		if ( is_file( $abs ) ) {
 			$ext  = strtolower( pathinfo( $abs, PATHINFO_EXTENSION ) );
-			$name = preg_replace( '/\.[^.]*$/', '', $name ) . '.' . $ext; // rozszerzenie zostaje
+			$name = self::strip_ext( $name, $ext );
+			$name = '' === $name ? '' : $name . '.' . $ext; // rozszerzenie zostaje
 		}
 		if ( '' === $name || '.' === $name[0] ) {
 			return new WP_Error( 'fp_name', 'Niepoprawna nazwa.' );
@@ -642,6 +643,19 @@ class FP_FS {
 		FP_Meta::flush();
 		self::fix_refs( $rel, $new_rel );
 		return $new_rel;
+	}
+
+	/**
+	 * Nazwa wpisana przy zmianie nazwy zdjęcia, bez rozszerzenia. Odcina tylko końcówkę, która
+	 * jest rozszerzeniem zdjęcia (np. „.jpg”), więc „Juwenalia 2.0” zostaje „Juwenalia 2.0”.
+	 */
+	public static function strip_ext( $name, $ext ) {
+		$exts = array_unique( array_merge( FP_Importer::EXT, array( strtolower( (string) $ext ) ) ) );
+		$dot  = strrpos( $name, '.' );
+		if ( false !== $dot && in_array( strtolower( substr( $name, $dot + 1 ) ), $exts, true ) ) {
+			$name = rtrim( substr( $name, 0, $dot ), " .\t" );
+		}
+		return $name;
 	}
 
 	/** Przenosi pliki i katalogi do katalogu docelowego; autor i gwiazdka zdjęcia idą razem z nim. */
