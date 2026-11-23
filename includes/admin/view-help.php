@@ -13,6 +13,6 @@ defined( 'ABSPATH' ) || exit;
 		<a class="button" href="<?php echo esc_url( FP_Admin::url( 'structure' ) ); ?>">Struktura katalogów</a>
 	<?php endif; ?>
 </p>
-<p class="fp-support">Focus Portfolio jest darmowe. Jeśli wtyczka Ci się przydaje, możesz <a href="<?php echo esc_url( FP_TIP_URL ); ?>" target="_blank" rel="noopener">postawić autorowi kawę ☕</a>.</p>
 <iframe class="fp-help-frame" title="Instrukcja Focus Portfolio" src="<?php echo esc_url( FP_URL . 'docs/instrukcja.html?v=' . FP_VERSION ); ?>"></iframe>
+<script>( function () { var h = location.hash, f = document.querySelector( '.fp-help-frame' ); if ( h && /^#[a-z0-9-]+$/.test( h ) && f ) { f.src = f.src.split( '#' )[0] + h; } } )();</script>
 <style>.fp-help-frame{width:100%;height:calc(100vh - 260px);min-height:560px;border:1px solid #dcdcde;border-radius:6px;background:#fff;padding:0}</style>

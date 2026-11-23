@@ -10,6 +10,9 @@ class FP_Settings {
 	const OPT      = 'fp_settings';
 	const OPT_VIEW = 'fp_view';
 
+	/** Domyślny katalog zdjęć (względem wp-content): powstaje sam przy włączeniu wtyczki, więc portfolio działa od razu. */
+	const DEFAULT_SOURCE = 'uploads/focus-portfolio';
+
 	private static $cache = array();
 
 	/** Ustawienia nadpisane przez widżet Elementora lub blok na czas jednego renderowania. */
@@ -17,9 +20,9 @@ class FP_Settings {
 
 	public static function defaults() {
 		return array(
-			'source'        => 'uploads/portfolio-focus', // względem wp-content
+			'source'        => self::DEFAULT_SOURCE,  // względem wp-content; tworzony przy włączeniu wtyczki
 			'page_id'       => 0,                   // strona, na której wyświetla się portfolio
-			'academic_year' => 2025,                // domyślny rok dla katalogów miesięcy bez roku
+			'academic_year' => self::current_year(), // domyślny rok dla katalogów miesięcy bez roku (przy instalacji: bieżący)
 			'season_start'  => 1,                   // pierwszy miesiąc „roku zdjęć”: 1 = rok kalendarzowy, 10 = akademicki, 9 = szkolny;
 			                                        // miesiące od niego do grudnia → domyślny rok, wcześniejsze → rok następny
 			'grid_size'     => 1280,
@@ -31,6 +34,15 @@ class FP_Settings {
 			'ocr_skip'      => '',                  // słowa w stopce zdjęcia, które nie są nazwiskiem (np. logo „FOCUS”), po przecinku
 			'language'      => '',                  // język portfolio na stronie: '' = jak strona, albo pl | en | de | es | fr | it
 		);
+	}
+
+	/**
+	 * Rok bieżącego „roku zdjęć”: przy sezonie od października w lutym 2027 to wciąż 2026.
+	 * Domyślna wartość „Domyślnego roku zdjęć” dla nowej instalacji i pustego pola formularza.
+	 */
+	public static function current_year( $season_start = 1 ) {
+		$y = (int) current_time( 'Y' );
+		return (int) current_time( 'n' ) < max( 1, min( 12, (int) $season_start ) ) ? $y - 1 : $y;
 	}
 
 	public static function view_defaults() {
@@ -140,7 +152,11 @@ class FP_Settings {
 	/** Aktualizacje schematu danych między wersjami (uruchamiane raz, przy pierwszym żądaniu po wgraniu). */
 	public static function maybe_upgrade() {
 		$ver = (string) get_option( 'fp_db_version', '1.0.0' );
+		if ( version_compare( $ver, '1.3.1', '>=' ) ) {
+			return;
+		}
 		if ( version_compare( $ver, '1.3.0', '>=' ) ) {
+			self::upgrade_131();
 			return;
 		}
 		if ( version_compare( $ver, '1.1.0', '<' ) ) {
@@ -211,6 +227,17 @@ class FP_Settings {
 		}
 		update_option( 'fp_db_version', '1.3.0', true );
 		do_action( 'litespeed_purge_all' ); // nowy wygląd od razu, bez starych kopii stron w pamięci podręcznej
+		self::upgrade_131();
+	}
+
+	/**
+	 * 1.3.1 (wtyczka 1.1.2): blokady .htaccess dla kosza, _portfolio.json i ukrytych wydarzeń od razu, bez czekania na skan;
+	 * cache widżetu „Zdjęcia” dostaje datę użycia, żeby nieużywane wpisy (po zmianie ustawień widżetu) dało się sprzątać.
+	 */
+	private static function upgrade_131() {
+		FP_Protect::sync();
+		FP_Photos_Picker::stamp_all();
+		update_option( 'fp_db_version', '1.3.1', true );
 	}
 
 
@@ -233,6 +260,56 @@ class FP_Settings {
 		return true;
 	}
 
+	/**
+	 * Czy katalog (względem wp-content) obejmuje pliki Biblioteki mediów WordPressa. Taki katalog nie może być źródłem,
+	 * bo Eksplorator przenosiłby i wyrzucał do kosza pliki, których używają wpisy i strony. Zwraca powód albo ''.
+	 *  - cały katalog uploads albo katalog, w którym uploads leży,
+	 *  - katalog roku / miesiąca Biblioteki (uploads/2025, uploads/2025/11) i katalog witryn sieci (uploads/sites),
+	 *  - każdy inny katalog w uploads, w którym leży choć jeden załącznik z Biblioteki mediów.
+	 *
+	 * @param bool $db false = tylko szybkie sprawdzenie ścieżki, bez zapytania do bazy.
+	 */
+	public static function media_conflict( $rel, $db = true ) {
+		$rel     = trim( str_replace( '\\', '/', (string) $rel ), '/' );
+		$content = wp_normalize_path( (string) realpath( WP_CONTENT_DIR ) );
+		$up      = wp_upload_dir( null, false );
+		$ubase   = ! empty( $up['basedir'] ) ? realpath( $up['basedir'] ) : false;
+		if ( '' === $rel || ! $content || ! $ubase ) {
+			return '';
+		}
+		$ubase = untrailingslashit( wp_normalize_path( $ubase ) );
+		$abs   = realpath( WP_CONTENT_DIR . '/' . $rel );
+		$abs   = untrailingslashit( wp_normalize_path( $abs ? $abs : WP_CONTENT_DIR . '/' . $rel ) );
+		if ( $abs === $ubase || 0 === strpos( $ubase . '/', $abs . '/' ) ) {
+			return 'to cały katalog uploads z Biblioteką mediów WordPressa';
+		}
+		if ( 0 !== strpos( $abs . '/', $ubase . '/' ) ) {
+			return ''; // poza uploads: Biblioteka mediów tam nie zapisuje
+		}
+		$sub = substr( $abs, strlen( $ubase ) + 1 );
+		if ( preg_match( '#^(\d{4}|sites)(/|$)#', $sub ) ) {
+			return 'to katalog Biblioteki mediów WordPressa (rok/miesiąc)';
+		}
+		if ( ! $db ) {
+			return '';
+		}
+		global $wpdb;
+		$hit = $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value LIKE %s LIMIT 1", $wpdb->esc_like( $sub . '/' ) . '%' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		return $hit ? 'w tym katalogu są pliki z Biblioteki mediów WordPressa' : '';
+	}
+
+	/** media_conflict() dla bieżącego źródła, zapamiętane na godzinę (sprawdzane przy każdej zmianie w Eksploratorze). */
+	public static function source_media_conflict() {
+		$src = (string) self::get( 'source' );
+		$key = 'fp_media_' . md5( $src );
+		$r   = get_transient( $key );
+		if ( false === $r ) {
+			$r = self::media_conflict( $src );
+			set_transient( $key, $r, HOUR_IN_SECONDS );
+		}
+		return (string) $r;
+	}
+
 	public static function ensure_defaults() {
 		if ( false === get_option( self::OPT ) ) {
 			$d = self::defaults();
@@ -244,6 +321,21 @@ class FP_Settings {
 		}
 		if ( false === get_option( self::OPT_VIEW ) ) {
 			add_option( self::OPT_VIEW, self::view_defaults() );
+		}
+		self::ensure_source_dir();
+	}
+
+	/**
+	 * Tworzy domyślny katalog zdjęć, jeśli ustawione jest źródło domyślne, a katalogu jeszcze nie ma
+	 * (świeża instalacja albo katalog usunięty przez FTP). Własnych ścieżek nie tworzy.
+	 */
+	public static function ensure_source_dir() {
+		$rel = trim( str_replace( '\\', '/', (string) self::get( 'source' ) ), '/' );
+		if ( self::DEFAULT_SOURCE !== $rel || is_dir( WP_CONTENT_DIR . '/' . $rel ) ) {
+			return;
+		}
+		if ( wp_mkdir_p( WP_CONTENT_DIR . '/' . $rel ) ) {
+			unset( self::$cache['path'] );
 		}
 	}
 

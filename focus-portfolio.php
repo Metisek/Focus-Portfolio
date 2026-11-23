@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       Focus Portfolio
- * Description:       Portfolio zdjęć czytane prosto z folderu na hostingu (kategorie → wydarzenia → zdjęcia), z automatycznym skanowaniem, miniaturami WebP i importem zdjęć.
- * Version:           1.1.1
+ * Description:       Portfolio (zdjęcia, grafiki, prace) czytane prosto z folderu na hostingu (kategorie → wydarzenia → pliki), z automatycznym skanowaniem, miniaturami WebP i importem.
+ * Version:           1.1.2
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Klub Filmowo-Fotograficzny Focus
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'FP_VERSION', '1.1.1' );
+define( 'FP_VERSION', '1.1.2' );
 define( 'FP_FILE', __FILE__ );
 define( 'FP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FP_URL', plugin_dir_url( __FILE__ ) );
@@ -33,6 +33,7 @@ require_once FP_DIR . 'includes/class-fp-meta.php';
 require_once FP_DIR . 'includes/class-fp-people.php';
 require_once FP_DIR . 'includes/class-fp-scanner.php';
 require_once FP_DIR . 'includes/class-fp-thumbs.php';
+require_once FP_DIR . 'includes/class-fp-protect.php';
 require_once FP_DIR . 'includes/class-fp-links.php';
 require_once FP_DIR . 'includes/class-fp-frontend.php';
 require_once FP_DIR . 'includes/class-fp-embeds.php';
@@ -51,11 +52,13 @@ if ( is_admin() ) {
 }
 
 FP_Thumbs::init();
+FP_Protect::init();
 add_action( 'init', array( 'FP_Settings', 'maybe_upgrade' ), 5 );
 FP_Frontend::init();
 FP_Embeds::init();
 FP_Photos::init();
 FP_Updates::init();
+add_filter( 'user_contactmethods', array( 'FP_People', 'contact_methods' ) );
 
 add_filter( 'cron_schedules', function ( $s ) {
 	$s['fp_quarter'] = array( 'interval' => 15 * MINUTE_IN_SECONDS, 'display' => 'Co 15 minut (Focus Portfolio)' );
@@ -65,14 +68,25 @@ add_filter( 'cron_schedules', function ( $s ) {
 add_action( 'fp_cron', function () {
 	FP_Scanner::maybe_rescan( true );
 	FP_Thumbs::process_batch( (int) FP_Settings::get( 'cron_batch' ), 40 );
+	FP_Photos_Picker::cleanup(); // nieużywany cache widżetu „Zdjęcia” (raz na dobę)
 } );
+
+/**
+ * Planuje skanowanie co 15 minut, jeśli zdarzenia brakuje.
+ * Hak aktywacji nie uruchamia się przy aktualizacji z GitHuba, więc sprawdzamy to przy każdym `init`
+ * (odczyt z opcji `cron`, która i tak jest w pamięci) – zgubione zdarzenie wraca samo.
+ */
+function fp_ensure_cron() {
+	if ( ! wp_next_scheduled( 'fp_cron' ) ) {
+		wp_schedule_event( time() + 60, 'fp_quarter', 'fp_cron' );
+	}
+}
+add_action( 'init', 'fp_ensure_cron', 20 );
 
 register_activation_hook( __FILE__, function () {
 	FP_Settings::ensure_defaults();
 	FP_Caps::install();
-	if ( ! wp_next_scheduled( 'fp_cron' ) ) {
-		wp_schedule_event( time() + 60, 'fp_quarter', 'fp_cron' );
-	}
+	fp_ensure_cron();
 	update_option( 'fp_flush_rewrite', 1 );
 } );
 

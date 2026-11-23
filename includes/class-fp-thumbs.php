@@ -238,7 +238,7 @@ class FP_Thumbs {
 
 	/** ?fp_img=<id>&s=g|l → generuje brakującą miniaturę i przekierowuje do pliku. */
 	public static function serve_ondemand() {
-		if ( empty( $_GET['fp_img'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( empty( $_GET['fp_img'] ) || ! is_string( $_GET['fp_img'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
 		}
 		$id   = preg_replace( '/[^a-f0-9]/', '', (string) wp_unslash( $_GET['fp_img'] ) ); // phpcs:ignore

@@ -1,6 +1,6 @@
 <?php
 /**
- * Fotografowie: rejestr osób (IG/FB/strona, konto WordPress, aliasy) i rozpoznawanie podpisów (OCR).
+ * Autorzy: rejestr osób (IG/FB/strona, konto WordPress, aliasy) i rozpoznawanie podpisów (OCR).
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -28,24 +28,41 @@ $user_pick = function ( $i, $uid ) use ( $ulabel, $ro ) {
 		(int) $i, $uid, esc_attr( $uid ? $ulabel[ $uid ] : '' ), $ro
 	);
 };
-// Instagram, Facebook i strona w jednej kolumnie, z krótkimi etykietami
-$profiles = function ( $i, $p ) use ( $ro ) {
-	$h = '';
-	foreach ( array( 'ig' => array( 'IG', 'text', 'nazwa konta' ), 'fb' => array( 'FB', 'url', 'https://facebook.com/…' ), 'www' => array( 'WWW', 'url', 'https://…' ) ) as $k => $f ) {
-		$h .= sprintf( '<label class="fp-pf"><span>%1$s</span><input type="%2$s" name="people[%3$d][%4$s]" value="%5$s" placeholder="%6$s"%7$s></label>', $f[0], $f[1], (int) $i, $k, esc_attr( isset( $p[ $k ] ) ? $p[ $k ] : '' ), esc_attr( $f[2] ), $ro );
+// profile w jednej wąskiej kolumnie: podsumowanie (linki; z konta, jeśli osoba je ma w profilu WordPressa),
+// a pola do wpisania dopiero po „Edytuj” (puste pola = dane z konta)
+$profiles = function ( $i, $p ) use ( $ro, $can_edit ) {
+	$acc   = FP_People::account_profile( $p['user_id'] );
+	$eff   = FP_People::profile( $p );
+	$label = array( 'ig' => 'IG', 'fb' => 'FB', 'www' => 'WWW' );
+	$sum   = '';
+	foreach ( $label as $k => $l ) {
+		if ( '' === $eff[ $k ] ) {
+			continue;
+		}
+		$url  = 'ig' === $k ? 'https://www.instagram.com/' . rawurlencode( $eff[ $k ] ) . '/' : $eff[ $k ];
+		$from = '' === (string) $p[ $k ] ? ' fp-pf-acc' : '';
+		$sum .= sprintf( '<a class="fp-pf-chip%s" href="%s" target="_blank" rel="noopener" title="%s">%s</a>', $from, esc_url( $url ), esc_attr( ( 'ig' === $k ? '@' . $eff[ $k ] : $eff[ $k ] ) . ( $from ? ' (z profilu konta)' : '' ) ), esc_html( $l ) );
 	}
-	return $h;
+	$h  = '<div class="fp-pf-sum">' . ( '' !== $sum ? $sum : '<span class="fp-opt">brak</span>' );
+	$h .= $can_edit ? ' <button type="button" class="button-link fp-pf-edit" aria-expanded="false">Edytuj</button>' : '';
+	$h .= '</div><div class="fp-pf-fields" hidden>';
+	foreach ( array( 'ig' => array( 'IG', 'text', 'nazwa konta' ), 'fb' => array( 'FB', 'url', 'https://facebook.com/…' ), 'www' => array( 'WWW', 'url', 'https://…' ) ) as $k => $f ) {
+		$ph = '' !== $acc[ $k ] ? 'z konta: ' . ( 'ig' === $k ? '@' . $acc[ $k ] : $acc[ $k ] ) : $f[2];
+		$h .= sprintf( '<label class="fp-pf"><span>%1$s</span><input type="%2$s" name="people[%3$d][%4$s]" value="%5$s" placeholder="%6$s"%7$s></label>', $f[0], $f[1], (int) $i, $k, esc_attr( isset( $p[ $k ] ) ? $p[ $k ] : '' ), esc_attr( $ph ), $ro );
+	}
+	return $h . '</div>';
 };
 $total = count( $people ) + count( $unknown );
 ?>
-<p class="fp-intro">Wszyscy podpisani pod zdjęciami są tu od razu: nic nie trzeba dodawać. Uzupełnij tylko to, co potrzebne: profil (Instagram, Facebook, strona) zamienia podpis „fot.” w link,
-	aliasy łączą różne zapisy tej samej osoby (np. „@nick”, literówki z OCR), a poprawione imię i nazwisko zastępuje stary zapis na stronie.</p>
+<p class="fp-intro">Wszyscy podpisani pod pracami są tu od razu: nic nie trzeba dodawać. Uzupełnij tylko to, co potrzebne: profil (Instagram, Facebook, strona) zamienia podpis autora w link,
+	aliasy łączą różne zapisy tej samej osoby (np. „@nick”, literówki z OCR), a poprawione imię i nazwisko zastępuje stary zapis na stronie.
+	Osoba połączona z kontem na stronie ma profile z <a href="<?php echo esc_url( admin_url( 'profile.php' ) ); ?>">profilu WordPressa</a> (Instagram, Facebook, witryna); tu wpisujesz je tylko, gdy ich tam nie ma albo mają być inne.</p>
 <?php FP_Admin::readonly_note(); ?>
 
 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="fp-people-form">
 	<input type="hidden" name="action" value="fp_save_people">
 	<?php wp_nonce_field( 'fp_save_people' ); ?>
-	<?php FP_Admin::card( 'people', 'Fotografowie (' . $total . ')' ); ?>
+	<?php FP_Admin::card( 'people', 'Autorzy (' . $total . ')' ); ?>
 		<p class="fp-p-sum"><b><?php echo (int) $total; ?></b> osób · <b><?php echo (int) count( $people ); ?></b> z uzupełnionymi danymi (profil, konto, aliasy)</p>
 		<div class="fp-ptools">
 			<input type="search" id="fp-p-q" placeholder="Szukaj osoby, aliasu, konta…" aria-label="Szukaj osoby">
@@ -80,10 +97,11 @@ $total = count( $people ) + count( $unknown );
 			<?php
 			$i   = 0;
 			$row = function ( $i, $p, $n, $is_new ) use ( $profiles, $user_pick, $can_edit, $ro ) {
-				$search = mb_strtolower( $p['name'] . ' ' . implode( ' ', $p['aliases'] ) . ' ' . $p['ig'] );
+				$eff    = FP_People::profile( $p );
+				$search = mb_strtolower( $p['name'] . ' ' . implode( ' ', $p['aliases'] ) . ' ' . $eff['ig'] );
 				printf(
-					'<tr data-state="%s" data-n="%d" data-q="%s" data-name="%s">',
-					$is_new ? 'new' : 'saved', (int) $n, esc_attr( $search ), esc_attr( $p['name'] )
+					'<tr data-state="%s" data-n="%d" data-q="%s" data-name="%s" data-prof="%d">',
+					$is_new ? 'new' : 'saved', (int) $n, esc_attr( $search ), esc_attr( $p['name'] ), implode( '', $eff ) ? 1 : 0
 				);
 				// orig: zapis sprzed zmiany (poprawione imię → stary zapis zostaje aliasem); saved: czy osoba ma już zapisane dane
 				printf(
@@ -134,7 +152,7 @@ $total = count( $people ) + count( $unknown );
 
 <?php if ( $can_edit ) : ?>
 <?php FP_Admin::card( 'ocr', 'Rozpoznaj autorów ze stopki (OCR)' ); ?>
-	<p class="description">Odczytuje podpis wtopiony w zdjęcie, np. „LOGO | IMIĘ NAZWISKO” (słowa z logo pominie, jeśli wpiszesz je w Ustawienia → Autorzy i podpisy). Działa w tej przeglądarce: zdjęcia nie są nigdzie wysyłane, pobierany jest tylko słownik języka polskiego (ok. 3 MB). Wyniki poprawiasz przed zapisem.</p>
+	<p class="description">Odczytuje podpis wtopiony w zdjęcie, np. „LOGO | IMIĘ NAZWISKO” (słowa z logo pominie, jeśli wpiszesz je w <a href="<?php echo esc_url( FP_Admin::url( 'settings' ) . '#fp-card-ocr' ); ?>">Ustawienia → OCR</a>). Działa w tej przeglądarce: zdjęcia nie są nigdzie wysyłane, pobierany jest tylko słownik języka polskiego (ok. 3 MB). Wyniki poprawiasz przed zapisem.</p>
 	<div class="fp-ocr-opts">
 		<div class="fp-field">
 			<label>Katalogi</label>

@@ -1,7 +1,9 @@
 <?php
 /**
- * Rejestr fotografów: imię i nazwisko, aliasy (warianty z metadanych, nicki, literówki OCR),
+ * Rejestr autorów: imię i nazwisko, aliasy (warianty z metadanych, nicki, literówki OCR),
  * Instagram / Facebook / strona i powiązane konto użytkownika WordPress.
+ * Profile osoby z kontem są brane z jej profilu WordPressa (pola „Instagram” i „Facebook” w danych kontaktowych,
+ * także te dodane przez Yoast SEO, oraz „Witryna internetowa”); wpis w rejestrze ma pierwszeństwo.
  * Aliasy sprowadzają różne zapisy do jednej osoby (np. „@matishoter” → „Mateusz Bojarski”).
  */
 
@@ -185,11 +187,59 @@ class FP_People {
 		return $best[1] <= 2 ? $best[0] : 0;
 	}
 
-	/** Link do profilu osoby (Instagram, potem Facebook, potem strona). */
+	/** Pola „Instagram” i „Facebook” w danych kontaktowych profilu użytkownika (jeśli nie dodała ich już inna wtyczka, np. Yoast SEO). */
+	public static function contact_methods( $methods ) {
+		if ( ! isset( $methods['instagram'] ) ) {
+			$methods['instagram'] = 'Instagram (nazwa konta lub adres)';
+		}
+		if ( ! isset( $methods['facebook'] ) ) {
+			$methods['facebook'] = 'Facebook (adres profilu)';
+		}
+		return $methods;
+	}
+
+	/** Profile z konta WordPress: Instagram i Facebook z danych kontaktowych, strona z pola „Witryna internetowa”. */
+	public static function account_profile( $uid ) {
+		$out = array( 'ig' => '', 'fb' => '', 'www' => '' );
+		$u   = $uid ? get_userdata( (int) $uid ) : null;
+		if ( ! $u ) {
+			return $out;
+		}
+		$ig  = (string) get_user_meta( $u->ID, 'instagram', true );
+		$fb  = (string) get_user_meta( $u->ID, 'facebook', true );
+		$out = array(
+			'ig'  => '' !== $ig ? self::handle( $ig, 'instagram.com' ) : '',
+			'fb'  => '' !== $fb ? esc_url_raw( 0 === strpos( $fb, 'http' ) ? $fb : 'https://www.facebook.com/' . ltrim( $fb, '@/' ) ) : '',
+			'www' => esc_url_raw( (string) $u->user_url ),
+		);
+		return $out;
+	}
+
+	/** Profile osoby do wyświetlenia: wpis w rejestrze, a puste pola uzupełnione z konta na stronie. */
+	public static function profile( $p ) {
+		$own = array(
+			'ig'  => isset( $p['ig'] ) ? (string) $p['ig'] : '',
+			'fb'  => isset( $p['fb'] ) ? (string) $p['fb'] : '',
+			'www' => isset( $p['www'] ) ? (string) $p['www'] : '',
+		);
+		if ( empty( $p['user_id'] ) || ( '' !== $own['ig'] && '' !== $own['fb'] && '' !== $own['www'] ) ) {
+			return $own;
+		}
+		$acc = self::account_profile( $p['user_id'] );
+		foreach ( $own as $k => $v ) {
+			if ( '' === $v ) {
+				$own[ $k ] = $acc[ $k ];
+			}
+		}
+		return $own;
+	}
+
+	/** Link do profilu osoby (Instagram, potem Facebook, potem strona); puste pola biorą wartości z konta na stronie. */
 	public static function link( $p ) {
 		if ( ! $p ) {
 			return '';
 		}
+		$p = self::profile( $p );
 		if ( '' !== $p['ig'] ) {
 			return 'https://www.instagram.com/' . rawurlencode( $p['ig'] ) . '/';
 		}

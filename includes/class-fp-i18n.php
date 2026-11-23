@@ -30,7 +30,7 @@ class FP_I18n {
 
 	public static function lang() {
 		// ekrany panelu (bez AJAX-a widżetu Elementora) zostają po polsku, żeby nie mieszać języków w jednym zdaniu
-		if ( is_admin() && ! ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && 0 !== strpos( (string) $_REQUEST['action'], 'fp_' ) ) ) { // phpcs:ignore
+		if ( is_admin() && ! ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && is_string( $_REQUEST['action'] ) && 0 !== strpos( $_REQUEST['action'], 'fp_' ) ) ) { // phpcs:ignore
 			return 'pl';
 		}
 		$set = (string) FP_Settings::get( 'language' );
@@ -82,11 +82,18 @@ class FP_I18n {
 		return false === $i ? self::t( $name ) : self::month( $i + 1 );
 	}
 
-	/** Etykieta okresu z manifestu („Maj 2026”, „2026”, „Archiwum”, „Pozostałe”) w bieżącym języku. */
+	/** Etykieta okresu z manifestu („Maj 2026”, „2026”, „Październik 2024 – Luty 2025”, „Archiwum”, „Pozostałe”) w bieżącym języku. */
 	public static function period( $label ) {
 		$label = (string) $label;
 		if ( '' === $label || 'pl' === self::lang() ) {
 			return $label;
+		}
+		if ( false !== strpos( $label, ' – ' ) ) {
+			// zakres miesięcy: każda strona osobno („Październik – Grudzień 2025” też)
+			return implode( ' – ', array_map( array( __CLASS__, 'period' ), explode( ' – ', $label ) ) );
+		}
+		if ( preg_match( '/^\p{L}+$/u', $label ) && false !== array_search( $label, FP_Scanner::MONTH_NAMES, true ) ) {
+			return self::month_pl( $label );
 		}
 		if ( preg_match( '/^(\S+) (\d{4})$/u', $label, $m ) ) {
 			return self::month_pl( $m[1] ) . ' ' . $m[2];

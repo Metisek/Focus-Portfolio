@@ -2,6 +2,32 @@
 
 Changes from before the first GitHub release are listed by date; the version label stayed at "1.1" during that time.
 
+## 1.1.2 (unreleased)
+
+- The 15-minute scan (`fp_cron`) is now checked on every page load and rescheduled if it is missing. Before, it was only scheduled on activation, so an update from GitHub never brought back a lost event.
+- Explorer: renaming a photo keeps dots in the typed name ("Juwenalia 2.0" no longer becomes "Juwenalia 2.jpg"). Only a trailing image extension (.jpg, .jpeg, .png, .webp) is dropped before the file's own extension is added back.
+- Portfolio page: an array in a single-value URL parameter (e.g. `?sort[]=x`) no longer causes a PHP fatal error (500). `sort`, `na`, `strona` and `q` now accept only plain values; anything else falls back to the default.
+- Source folder: a folder that holds WordPress Media Library files can no longer be set as the source (the whole `uploads` folder, a folder above it, `uploads/2025`, `uploads/2025/11`, `uploads/sites`, or any folder in `uploads` with at least one Media Library attachment). Such folders are greyed out in the folder picker. If a site already uses one, the Explorer refuses to move, rename or trash anything there and says why.
+- Direct links to things visitors should not see are now blocked with `.htaccess` rules (Apache, LiteSpeed) written by the plugin: `_portfolio.json` and `_kosz.json`, the trash `__kosz`, any other `__` folder, hidden categories, and hidden events (whole folders, or single files for loose photos). The rules are kept in sync after every scan and removed when something is shown again; the rest of an existing `.htaccess` stays untouched. On nginx, Settings shows a rule to add to the server config.
+- The default photo year ("Domyślny rok zdjęć") is no longer fixed at 2025: new installs and an empty field use the current photo year (with the season start taken into account).
+- Uninstalling the plugin now removes the "Redaktor portfolio" role (its users get the default role), the `fp_view` / `fp_edit` / `fp_admin` capabilities from all roles, and the plugin's `.htaccess` blocks.
+- Photos widget: cache entries that no widget has read for 30 days (for example after changing a widget's mode or folders) are now removed by the cron once a day. Existing entries count as used at the time of the update.
+- Admin panel: array values in URL parameters (e.g. `?page[]=x`, `?tab[]=x`, `?fp_msg[]=x`) and in Explorer requests no longer cause a PHP fatal error on WordPress 6.0, whose `sanitize_key()` did not check the type.
+- Database schema 1.3.1: applies the access rules and stamps the widget cache once after the update.
+- Explorer: changes (delete, rename, move, star, cover, author, folder properties) show up immediately; the server work runs in a background queue shown in the status bar (click for the list). A failed change is rolled back.
+- Uploads: several uploads are merged into one "N import operations: x of y files" entry with details in the popover. Folders that are being uploaded to cannot be renamed, moved or deleted until the upload ends.
+- Tree counters (folder, parents, root, Trash) update after every change.
+- Date ranges: folder names like `2024-10 – 2025-02 Name` and a "several months" option in folder properties (`date_to` in `_portfolio.json`). Shown as "October 2024 – February 2025" (translated).
+- A default source folder `uploads/focus-portfolio` is created on activation and used out of the box.
+- Explorer uses the full page width; the tree and properties panels can be collapsed; the tile size slider scales smoothly.
+- Trash: thumbnails, tiles/list/details views, restore selected or all, permanent delete of selected; "Empty trash" moved to the properties panel and the context menu.
+- Naming made universal: "Photographers" → "Authors" (admin and the German visitor strings).
+- Authors: compact profile column; Instagram and Facebook come from the WordPress user profile (fields added there if no other plugin provides them).
+- Settings: OCR has its own card. Dismissible coffee note on every plugin screen (comes back the next day).
+- Auto-fixes made by the scanner are listed as "To check" in the Explorer and on the dashboard, each confirmed with "Looks fine".
+- Dashboard shortcut to Trash. Scheme descriptions moved from the Structure screen to the manual (chapter 3); manual updated.
+- UI fixes: heading button alignment, photo properties spacing.
+
 ## 1.1.1 (2026-11-10)
 
 - Removed the GitHub links from the WordPress dashboard (plugin list, manual screen, "View details" dialog).

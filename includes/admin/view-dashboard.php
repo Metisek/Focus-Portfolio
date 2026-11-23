@@ -76,11 +76,17 @@ $can_edit = FP_Caps::can( FP_Caps::EDIT );
 	<?php endif; ?>
 <?php FP_Admin::card_end(); ?>
 
-<?php FP_Admin::card( 'issues', 'Co wtyczka poprawiła sama' . ( ! empty( $m['issues'] ) ? ' (' . count( $m['issues'] ) . ')' : '' ), false ); ?>
-	<?php if ( empty( $m['issues'] ) ) : ?>
-		<p>Nic do zgłoszenia.</p>
+<?php
+$notes = FP_Scanner::notes();
+FP_Admin::card( 'issues', 'Do sprawdzenia: poprawki automatyczne' . ( $notes ? ' (' . count( $notes ) . ')' : '' ), (bool) $notes );
+?>
+	<?php if ( ! $notes ) : ?>
+		<p class="fp-ok">Wszystkie poprawki wtyczki są potwierdzone.</p>
 	<?php else : ?>
-		<ul class="fp-issues-list"><?php foreach ( $m['issues'] as $i ) : ?><li><?php echo esc_html( $i ); ?></li><?php endforeach; ?></ul>
+		<p class="description">Wtyczka sama coś przyjęła albo pominęła (np. rok miesiąca bez roku, puste katalogi, kopie WordPressa). Sprawdź i potwierdź „W porządku” albo popraw w Eksploratorze.</p>
+		<ul class="fp-issues-list"><?php foreach ( array_slice( $notes, 0, 5 ) as $n ) : ?><li><?php echo esc_html( $n['msg'] ); ?></li><?php endforeach; ?></ul>
+		<?php if ( count( $notes ) > 5 ) : ?><p class="description">…i <?php echo (int) ( count( $notes ) - 5 ); ?> więcej.</p><?php endif; ?>
+		<p><a class="button button-primary" href="<?php echo esc_url( FP_Admin::url( 'explorer', array( 'view' => 'inbox', 'type' => 'auto' ) ) ); ?>">Sprawdź w Eksploratorze</a></p>
 	<?php endif; ?>
 <?php FP_Admin::card_end(); ?>
 
@@ -122,7 +128,9 @@ $can_edit = FP_Caps::can( FP_Caps::EDIT );
 <?php FP_Admin::card( 'links', 'Na skróty' ); ?>
 	<ul class="fp-links">
 		<li><a href="<?php echo esc_url( FP_Admin::url( 'explorer' ) ); ?>">Eksplorator</a>: katalogi, zdjęcia, okładki, kolejność, gwiazdki</li>
-		<li><a href="<?php echo esc_url( FP_Admin::url( 'people' ) ); ?>">Fotografowie</a>: rejestr autorów, Instagram, rozpoznawanie podpisów (OCR)</li>
+		<?php $trash_n = $path ? count( FP_FS::trash_list() ) : 0; ?>
+		<li><a href="<?php echo esc_url( FP_Admin::url( 'explorer', array( 'view' => 'trash' ) ) ); ?>">Kosz<?php echo $trash_n ? ' (' . (int) $trash_n . ')' : ''; ?></a>: usunięte pliki i katalogi, przywracanie</li>
+		<li><a href="<?php echo esc_url( FP_Admin::url( 'people' ) ); ?>">Autorzy</a>: rejestr autorów, Instagram, rozpoznawanie podpisów (OCR)</li>
 		<?php if ( FP_Caps::can( FP_Caps::ADMIN ) ) : ?>
 		<li><a href="<?php echo esc_url( FP_Admin::url( 'structure' ) ); ?>">Struktura</a>: jak nazywać katalogi, filtry dla odwiedzających</li>
 		<li><a href="<?php echo esc_url( FP_Admin::url( 'view' ) ); ?>">Wygląd</a>: warianty, kolumny, kolory, stronicowanie</li>

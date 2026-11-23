@@ -1,4 +1,4 @@
-/* Focus Portfolio: fotografowie i autorzy ze stopki (OCR w przeglądarce, tesseract.js). */
+/* Focus Portfolio: rejestr autorów i autorzy ze stopki (OCR w przeglądarce, tesseract.js). */
 jQuery(function ($) {
 	'use strict';
 	var A = window.FP_ADMIN || {};
@@ -131,7 +131,7 @@ jQuery(function ($) {
 		return $('.fp-ocr-dir:checked').map(function () { return this.value; }).get();
 	}
 
-	/* ---------- rejestr fotografów ---------- */
+	/* ---------- rejestr autorów ---------- */
 	var $people = $('#fp-people'), $ptb = $people.find('tbody');
 	function fold(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l'); }
 	function lastName(n) { var p = String(n).replace(/@\S+/g, '').trim().split(/\s+/); return p[p.length - 1] || n; }
@@ -154,7 +154,7 @@ jQuery(function ($) {
 			if (ok && f === 'saved') ok = tr.getAttribute('data-state') === 'saved';
 			if (ok && f === 'new') ok = tr.getAttribute('data-state') === 'new';
 			if (ok && f === 'nouser') ok = !(+$(tr).find('.fp-user-id').val());
-			if (ok && f === 'noprofile') ok = !$(tr).find('.fp-pf input').filter(function () { return this.value; }).length;
+			if (ok && f === 'noprofile') ok = tr.getAttribute('data-prof') !== '1' && !$(tr).find('.fp-pf input').filter(function () { return this.value; }).length;
 			if (ok && f === 'hidden') ok = $(tr).find('[name$="[hidden]"]').prop('checked');
 			tr.hidden = !ok;
 			if (ok) shown++;
@@ -166,6 +166,14 @@ jQuery(function ($) {
 	$('#fp-p-q').on('input', drawPeople);
 	$('#fp-p-filter, #fp-p-sort').on('change', drawPeople);
 	if ($people.length) drawPeople();
+
+	// profile: pola do wpisania dopiero po „Edytuj” (kolumna zostaje wąska)
+	$people.on('click', '.fp-pf-edit', function () {
+		var $f = $(this).closest('td').find('.fp-pf-fields'), open = $f.prop('hidden');
+		$f.prop('hidden', !open);
+		$(this).attr('aria-expanded', open ? 'true' : 'false').text(open ? 'Zwiń' : 'Edytuj');
+		if (open) $f.find('input').first().trigger('focus');
+	});
 
 	// konto na stronie: wpisany tekst → id z listy podpowiedzi
 	$people.on('input change', '.fp-user-pick', function () {
@@ -192,7 +200,7 @@ jQuery(function ($) {
 		var $tr = $('<tr data-state="saved" data-n="0" data-q="" data-name="">').append(
 			$('<td class="fp-p-name">').html('<input type="hidden" name="people[' + i + '][saved]" value="1"><input type="text" name="people[' + i + '][name]" placeholder="Imię Nazwisko"><span class="fp-p-badge">nowa osoba</span>'),
 			$('<td>').html('<input type="text" class="fp-wide" name="people[' + i + '][aliases]">'),
-			$('<td class="fp-p-prof">').html(pf('ig', 'IG', 'text', 'nazwa konta') + pf('fb', 'FB', 'url', 'https://facebook.com/…') + pf('www', 'WWW', 'url', 'https://…')),
+			$('<td class="fp-p-prof">').html('<div class="fp-pf-fields">' + pf('ig', 'IG', 'text', 'nazwa konta') + pf('fb', 'FB', 'url', 'https://facebook.com/…') + pf('www', 'WWW', 'url', 'https://…') + '</div>'),
 			$('<td>').html('<input type="hidden" name="people[' + i + '][user_id]" value="0" class="fp-user-id"><input type="search" class="fp-user-pick" list="fp-users" placeholder="Szukaj konta…" aria-label="Konto na stronie">'),
 			$('<td class="num">').text('0'),
 			$('<td>').html('<input type="checkbox" name="people[' + i + '][hidden]" value="1" aria-label="Ukryj w filtrze autorów">'),

@@ -519,16 +519,21 @@ class FP_Frontend {
 		$list = function ( $k ) use ( $get ) {
 			return isset( $get[ $k ] ) ? array_values( array_filter( array_map( 'sanitize_title', (array) $get[ $k ] ) ) ) : array();
 		};
-		$sort = isset( $get['sort'] ) && isset( self::photo_sorts()[ $get['sort'] ] ) ? $get['sort'] : $default_sort;
-		$na   = isset( $get['na'] ) && in_array( (string) $get['na'], array( '20', '50', '100' ), true ) ? (int) $get['na'] : (int) $v['per_page'];
+		// Pojedyncze parametry: tablica (np. ?sort[]=x) lub inny nie-tekst = brak parametru (bez błędu 500 w PHP 8).
+		$one  = function ( $k ) use ( $get ) {
+			return isset( $get[ $k ] ) && is_scalar( $get[ $k ] ) ? (string) $get[ $k ] : '';
+		};
+		$sort = $one( 'sort' );
+		$sort = '' !== $sort && array_key_exists( $sort, self::photo_sorts() ) ? $sort : $default_sort;
+		$na   = in_array( $one( 'na' ), array( '20', '50', '100' ), true ) ? (int) $one( 'na' ) : (int) $v['per_page'];
 		return array(
 			'okres'  => $list( 'okres' ),
 			'autor'  => $list( 'autor' ),
 			'sort'   => $sort,
 			'dsort'  => $default_sort,
 			'na'     => $na,
-			'strona' => max( 1, isset( $get['strona'] ) ? (int) $get['strona'] : 1 ),
-			'q'      => isset( $get['q'] ) ? sanitize_text_field( $get['q'] ) : '',
+			'strona' => max( 1, (int) $one( 'strona' ) ),
+			'q'      => sanitize_text_field( $one( 'q' ) ),
 		);
 	}
 
@@ -700,7 +705,7 @@ class FP_Frontend {
 		$years = array();
 		foreach ( $labels as $label ) {
 			if ( preg_match( '/^(.*\S)\s+(\d{4})$/u', $label, $m ) ) {
-				$years[ $m[2] ][] = array( FP_Scanner::slug( $label ), $m[1] );
+				$years[ $m[2] ][] = array( FP_Scanner::slug( $label ), $m[1], $label ); // zakres („Październik 2024 – Luty 2025”) stoi w roku końca
 			} else {
 				$years[ $label ] = array(); // rok (DKF), „Archiwum”, „Pozostałe”
 			}
@@ -721,7 +726,7 @@ class FP_Frontend {
 				$all_on = ! array_diff( wp_list_pluck( $months, 0 ), $chosen );
 				printf( '<label class="fp-filter-y"><input type="checkbox" data-fp-year="%s"%s> %s</label><div class="fp-filter-months">', esc_attr( $year ), checked( $all_on, true, false ), esc_html( $year ) );
 				foreach ( $months as $mo ) {
-					printf( '<label><input type="checkbox" name="okres[]" value="%s" data-fp-in="%s"%s> %s</label>', esc_attr( $mo[0] ), esc_attr( $year ), checked( in_array( $mo[0], $chosen, true ), true, false ), esc_html( FP_I18n::month_pl( $mo[1] ) ) );
+					printf( '<label><input type="checkbox" name="okres[]" value="%s" data-fp-in="%s"%s> %s</label>', esc_attr( $mo[0] ), esc_attr( $year ), checked( in_array( $mo[0], $chosen, true ), true, false ), esc_html( false !== strpos( $mo[1], '–' ) ? FP_I18n::period( $mo[2] ) : FP_I18n::month_pl( $mo[1] ) ) );
 				}
 				echo '</div>';
 			} else {
@@ -958,7 +963,7 @@ class FP_Frontend {
 		}
 	}
 
-	/** Nazwiska z linkami do profili z rejestru fotografów. */
+	/** Nazwiska z linkami do profili z rejestru autorów. */
 	private static function author_links( $names ) {
 		$out = array();
 		foreach ( $names as $n ) {

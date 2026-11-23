@@ -143,7 +143,7 @@ details.fp-card[open] > summary { border-bottom: 1px solid #f0f0f1; }
 .fp-nc-out.is-warn { color: #8a5a00; }
 .fp-filters label { display: block; white-space: nowrap; font-size: 12.5px; }
 .fp-warn-text { color: #8a5a00; }
-/* rejestr fotografów */
+/* rejestr autorów */
 .fp-p-sum { margin: 0 0 10px; color: #50575e; }
 .fp-ptools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px; margin-bottom: 10px; background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 6px; position: sticky; top: 32px; z-index: 5; }
 .fp-ptools #fp-p-q { width: 260px; max-width: 100%; }
@@ -163,7 +163,12 @@ details.fp-card[open] > summary { border-bottom: 1px solid #f0f0f1; }
 .fp-p-badge.is-new { color: #8a5a00; }
 .fp-pf { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 .fp-pf span { flex: none; width: 34px; font-size: 11px; font-weight: 600; color: #646970; }
-.fp-p-prof { min-width: 230px; }
+.fp-p-prof { width: 1%; min-width: 120px; white-space: nowrap; }
+.fp-pf-sum { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding-top: 5px; }
+.fp-pf-chip { display: inline-block; padding: 1px 6px; border-radius: 3px; background: #e3f6fa; color: #0a5d6d; font-size: 11px; font-weight: 600; text-decoration: none; }
+.fp-pf-chip.fp-pf-acc { background: #f0f0f1; color: #50575e; }
+.fp-pf-edit { font-size: 12px; }
+.fp-pf-fields { margin-top: 6px; min-width: 220px; white-space: normal; }
 .fp-user-pick { min-width: 180px; }
 .fp-user-pick.is-bad { border-color: #d63638 !important; }
 .fp-new-person td { background: #fcf9e8; }
@@ -195,3 +200,20 @@ details.fp-card[open] > summary { border-bottom: 1px solid #f0f0f1; }
 .fp-seg-choice label { display: block; margin: 4px 0; }
 .fp-cols-tight { margin-top: 0; }
 .fp-cols-tight h3 { margin-top: 4px; }
+
+/* nagłówek: przycisk „Zobacz portfolio” w jednej linii z tytułem (WordPress podnosi go o 3 px i dokleja margines) */
+.fp-admin h1.fp-title { flex-wrap: wrap; row-gap: 6px; }
+.fp-admin h1.fp-title .page-title-action { position: static; top: auto; margin: 0; align-self: center; }
+
+/* pasek „postaw kawę” pod nagłówkiem (zamykany do następnego dnia) */
+.fp-tipbar { display: flex; align-items: center; gap: 10px; margin: 12px 0 4px; padding: 8px 8px 8px 14px; background: #fdf8ec; border: 1px solid #f0e3c0; border-radius: 6px; }
+.fp-tipbar[hidden] { display: none; }
+.fp-tipbar p { margin: 0; flex: 1; min-width: 0; }
+.fp-tipbar-ico { font-size: 18px; line-height: 1; }
+.fp-tipbar-x { flex: none; width: 28px; height: 28px; border: 0; border-radius: 4px; background: none; color: #646970; font-size: 20px; line-height: 1; cursor: pointer; }
+.fp-tipbar-x:hover, .fp-tipbar-x:focus-visible { background: #f3e9cf; color: #1d2327; }
+
+/* Eksplorator na całą szerokość strony panelu */
+.fp-admin.fp-page-explorer { max-width: none; }
+.fp-scheme-mini { margin-top: 8px; }
+.fp-scheme-mini code { white-space: nowrap; }

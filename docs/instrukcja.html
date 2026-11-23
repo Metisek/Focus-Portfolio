@@ -43,16 +43,16 @@ body { font: 10.5pt/1.5 "Segoe UI", Calibri, Arial, sans-serif; color: var(--ink
 	<li>Nazwy plików i autorzy</li>
 	<li>Eksplorator</li>
 	<li>Okładki, gwiazdki, kolejność</li>
-	<li>Do uporządkowania</li>
+	<li>Do uporządkowania i Do sprawdzenia</li>
 	<li>Kosz</li>
-	<li>Fotografowie i OCR</li>
+	<li>Autorzy i OCR</li>
 	<li>Strona portfolio i Elementor</li>
 	<li>Uprawnienia</li>
 	<li>Dobre praktyki i pytania</li>
 </ol>
 
 <h2>1. Jak to działa</h2>
-<p>Portfolio czyta zdjęcia prosto z katalogu na serwerze (domyślnie <code>wp-content/uploads/portfolio-focus/</code>). Nie trzeba niczego dodawać do Biblioteki mediów ani tworzyć wpisów.</p>
+<p>Portfolio czyta zdjęcia prosto z katalogu na serwerze (domyślnie <code>wp-content/uploads/focus-portfolio/</code>, tworzony sam przy włączeniu wtyczki). Nie trzeba niczego dodawać do Biblioteki mediów ani tworzyć wpisów.</p>
 <ul>
 	<li><b>Katalog pierwszego poziomu = kategoria</b> (np. <code>FOTORELACJA</code>, <code>KONCERTY</code>, <code>SESJA</code>, <code>DKF</code>).</li>
 	<li><b>Katalog wydarzenia = jedna galeria</b> na stronie, z własnym adresem, np. <code>/portfolio/fotorelacje/kwiecien-2026/bal-tysiaca-swiatel/</code>.</li>
@@ -71,15 +71,29 @@ body { font: 10.5pt/1.5 "Segoe UI", Calibri, Arial, sans-serif; color: var(--ink
 </ol>
 <div class="tip">Przez FTP robisz to samo: utwórz katalogi i wgraj zdjęcia. Strona zaktualizuje się w ciągu 15 minut (albo od razu po „Skanuj teraz” na Pulpicie).</div>
 
-<h2>3. Nazwy katalogów</h2>
-<p>Każda kategoria ma schemat (ustawiany w <b>Struktura</b>). Wtyczka rozpoznaje go też sama.</p>
+<h2 id="nazwy">3. Nazwy katalogów</h2>
+<p>Każda kategoria ma schemat (ustawiany w <b>Struktura → Kategorie i filtry</b>). Wtyczka rozpoznaje go też sama.</p>
+
+<h3 id="ktory-schemat">Który schemat wybrać?</h3>
+<table>
+	<tr><th>Masz</th><th>Schemat</th></tr>
+	<tr><td>Dużo wydarzeń co miesiąc (fotorelacje)</td><td><b>Miesiące → wydarzenia</b>; jeśli wolisz nazywać katalogi datą wydarzenia: <b>Wydarzenia z datą w nazwie</b></td></tr>
+	<tr><td>Kilka–kilkanaście galerii w roku (sesje, wyjazdy, projekty)</td><td><b>Lata → wydarzenia</b></td></tr>
+	<tr><td>Konkurs albo cykl z numerami edycji</td><td><b>Edycje (numer + rok)</b></td></tr>
+	<tr><td>Zbiór bez dat (portfolio osoby, „najlepsze”, archiwum)</td><td><b>Wydarzenia (bez dat)</b></td></tr>
+	<tr><td>Podział na autorów albo klientów</td><td>kategoria na osobę (np. <code>JAN KOWALSKI/</code>) z dowolnym schematem; autora zdjęć ustawisz w Eksploratorze („Domyślny autor” katalogu)</td></tr>
+</table>
 
 <h3>Miesiące → wydarzenia (np. Fotorelacje)</h3>
 <pre><code>FOTORELACJA/
   2026-04 Kwiecień/            rok-miesiąc i nazwa miesiąca
     Bal Tysiąca Świateł/       1 katalog = 1 wydarzenie
       DSC_0001.jpg
-    Juwenalia-01.jpg           zdjęcia luzem „Nazwa-NN” też tworzą wydarzenie</code></pre>
+    Juwenalia-01.jpg           zdjęcia luzem „Nazwa-NN” też tworzą wydarzenie
+  2025/                        albo lata, a w nich miesiące
+    11 Listopad/
+      Otrzęsiny/</code></pre>
+<p>Na stronie wydarzenia są pogrupowane po miesiącach, z filtrem miesięcy i lat.</p>
 <table>
 	<tr><th>Nazwa katalogu miesiąca</th><th>Wynik</th></tr>
 	<tr><td><code>2026-04 Kwiecień</code></td><td class="ok">najlepiej: rok jednoznaczny</td></tr>
@@ -109,7 +123,7 @@ KONCERTY/
   2026-05-12 Juwenalia/        data znika z tytułu na stronie
   2026-04 Bal Tysiąca Świateł/ sam miesiąc też wystarczy
   2025 Plener/                 albo sam rok</code></pre>
-<p>Katalogi same układają się po dacie. Na stronie wydarzenia są pogrupowane po miesiącach.</p>
+<p>Katalogi same układają się po dacie (jak eksport z Lightrooma). Na stronie wydarzenia są pogrupowane po miesiącach. Wydarzenie bez daty trafi do „Do uporządkowania”.</p>
 
 <h3>Lata → wydarzenia</h3>
 <pre><code>KATEGORIA/
@@ -117,13 +131,21 @@ KONCERTY/
     Sesja na dzień kobiet/     1 katalog = 1 galeria
   2025/
     Studniówka/</code></pre>
-<p>Dla kategorii z kilkoma galeriami w roku (sesje, wyjazdy, projekty). Na stronie pogrupowane po latach. Schemat wybierasz w <b>Struktura → Kategorie i filtry</b>; tam jest też podpowiedź „Który schemat wybrać?”.</p>
+<p>Dla kategorii z kilkoma galeriami w roku (sesje, wyjazdy, projekty). Na stronie pogrupowane po latach. Schemat wybierasz w <b>Struktura → Kategorie i filtry</b>; wydarzenie poza katalogiem roku i bez daty w nazwie trafi do „Do uporządkowania”.</p>
+
+<h3 id="zakresy">Zakres dat (kilka miesięcy)</h3>
+<p>Gdy galeria obejmuje kilka miesięcy (np. cykl imprez w jednym miejscu przez pół roku), wpisz zakres na początku nazwy katalogu:</p>
+<pre><code>KATEGORIA/
+  2024-10 – 2025-02 Klub Studio/   od października 2024 do lutego 2025
+  2025-03 - 2025-06 Plenery/       zwykły myślnik też działa</code></pre>
+<p>Na stronie pokaże się „Październik 2024 – Luty 2025”, a w sortowaniu galeria liczy się według miesiąca końcowego. Bez zmiany nazwy: w Eksploratorze → Właściwości katalogu zaznacz <b>Zakres kilku miesięcy</b> i wybierz miesiąc początkowy i końcowy.</p>
 
 <h3>Zasady wspólne</h3>
 <ul>
 	<li>Katalogi i pliki zaczynające się od <code>__</code> są pomijane (np. <code>__robocze</code>). Tak działa też kosz <code>__kosz</code>.</li>
 	<li>Notatki w nawiasach nie trafiają na stronę: <code>GRUDZIEŃ (bez ślizgawki)</code> → „Grudzień”.</li>
 	<li>Kopie z Biblioteki mediów (<code>-150x150</code>, <code>-scaled</code>) są pomijane.</li>
+	<li>Prefiks „Kopia ” w nazwach plików jest usuwany z tytułów.</li>
 	<li>Zmiana nazwy katalogu wydarzenia zmienia jego adres na stronie (stare linki przestaną działać).</li>
 	<li>W <b>Struktura → Sprawdź nazwę</b> zobaczysz, jak wtyczka zrozumie nazwę, zanim ją utworzysz. Eksplorator ostrzega przy nazwie, która może popsuć wyświetlanie.</li>
 </ul>
@@ -149,9 +171,13 @@ KONCERTY/
 	<li><b>Prawy przycisk</b> otwiera menu: na zdjęciu lub katalogu (otwórz, zmień nazwę, przenieś, gwiazdka, okładka, do kosza), na katalogu w drzewie (też nowy katalog w środku i wgrywanie) i na pustym miejscu (nowy katalog, wgraj, zaznacz wszystko, zmiana nazwy bieżącego katalogu). <b>Drugi prawy klik</b> (albo <kbd>Shift</kbd>+prawy) daje zwykłe menu przeglądarki.</li>
 	<li><b>Przeciąganie</b>: zdjęcia na katalog w drzewie lub kafelek = przeniesienie; pliki z komputera = wgranie.</li>
 	<li><b>Przenieś do…</b> ma wyszukiwarkę katalogów (np. wpisz „listopad bal”).</li>
+	<li><b>Zmiany widać od razu</b>: usunięcie, zmiana nazwy, przeniesienie, gwiazdka, okładka czy autor pojawiają się w widoku natychmiast, a zapis na serwerze idzie w tle. Postęp jest na pasku na dole, po prawej (np. „Zmiana nazwy… (+2 w kolejce)”); kliknięcie pokazuje listę operacji. Gdy coś się nie uda, widok wraca do stanu sprzed zmiany i pojawia się komunikat. Przed zamknięciem karty w trakcie zapisu przeglądarka ostrzeże.</li>
+	<li><b>Wgrywanie</b>: kilka wgrań naraz pokazuje się jako jedna pozycja, np. „3 operacje importu: 40 z 120 plików”; po kliknięciu widać, co i dokąd się wgrywa. Do końca wgrywania nie można zmienić nazwy, przenieść ani usunąć katalogu, do którego idą pliki.</li>
+	<li><b>Panele</b>: drzewo i Właściwości zwijasz przyciskami w pasku narzędzi. Suwak wielkości kafelków działa płynnie.</li>
+	<li>Liczby przy katalogach w drzewie (i przy całym katalogu źródłowym oraz Koszu) aktualizują się po każdej operacji.</li>
 	<li>Skróty: <kbd>F2</kbd> zmiana nazwy, <kbd>Del</kbd> do kosza, <kbd>Enter</kbd> otwórz, <kbd>Backspace</kbd> katalog wyżej, <kbd>F5</kbd> odśwież.</li>
 </ul>
-<p><b>Właściwości</b> (panel po prawej) dla bieżącego katalogu: przyciski <b>Zmień nazwę</b>, <b>Przenieś</b> i <b>Do kosza</b>, a pod nimi tytuł na stronie, podtytuł, opis, data, Archiwum, Ukryj, domyślny autor, kolejność zdjęć i okładki. Dla zdjęcia: autor, gwiazdka, okładka, podgląd.</p>
+<p><b>Właściwości</b> (panel po prawej) dla bieżącego katalogu: przyciski <b>Zmień nazwę</b>, <b>Przenieś</b> i <b>Do kosza</b>, a pod nimi tytuł na stronie, podtytuł, opis, data (albo zakres miesięcy), Archiwum, Ukryj, domyślny autor, kolejność zdjęć i okładki. Dla zdjęcia: autor, gwiazdka, okładka, podgląd.</p>
 <p>Zdjęcia luzem „Nazwa-01.jpg” można jednym kliknięciem zamienić w katalog („Zrób z tego katalog”).</p>
 
 <h2>6. Okładki, gwiazdki, kolejność</h2>
@@ -163,7 +189,7 @@ KONCERTY/
 	<li>Na stronie, gdy jesteś zalogowany, w powiększeniu zdjęcia jest przycisk <b>„Ustaw jako okładkę”</b>.</li>
 </ul>
 
-<h2>7. Do uporządkowania</h2>
+<h2>7. Do uporządkowania i Do sprawdzenia</h2>
 <p>Wtyczka niczego sama nie przenosi (chyba że administrator włączy porządkowanie automatyczne w Strukturze). Problemy zbiera w <b>Eksplorator → Do uporządkowania</b>:</p>
 <table>
 	<tr><th>Problem</th><th>Co zrobić</th></tr>
@@ -173,21 +199,29 @@ KONCERTY/
 	<tr><td>Pusty katalog</td><td><b>Do kosza</b>.</td></tr>
 </table>
 <p>Na górze listy są przyciski rodzajów (filtr), a każdą grupę można zwinąć. Przy każdej sprawie widać miniatury zdjęć, których dotyczy; kliknięcie otwiera podgląd.</p>
+<h3>Do sprawdzenia: poprawki wtyczki</h3>
+<p>Część rzeczy wtyczka poprawia sama przy skanowaniu (np. przyjmuje rok dla miesiąca bez roku, ukrywa notatkę w nawiasie, łączy podkatalogi w jedno wydarzenie, pomija pusty katalog lub uszkodzony plik). Każda taka poprawka trafia do rodzaju <b>Do sprawdzenia</b> w „Do uporządkowania” (i na Pulpit). Przy każdej klikasz <b>W porządku</b> (znika z listy) albo <b>Otwórz i popraw</b>; jest też <b>Wszystkie w porządku</b>.</p>
 
 <h2>8. Kosz</h2>
-<p>Usuwanie w Eksploratorze przenosi do <b>Kosza</b> (<code>__kosz</code> w katalogu źródłowym). Każdy redaktor może <b>przywrócić</b> element na pierwotne miejsce. Trwale usunąć (i opróżnić kosz) może tylko administrator. Dostaje przy tym ostrzeżenie, bo tego nie da się cofnąć.</p>
-
-<h2>9. Fotografowie i OCR</h2>
-<p><b>Focus Portfolio → Fotografowie</b>:</p>
+<p>Usuwanie w Eksploratorze przenosi do <b>Kosza</b> (<code>__kosz</code> w katalogu źródłowym). Kosz wygląda jak reszta Eksploratora: kafelki z miniaturami, lista albo szczegóły (skąd pochodzi, kiedy usunięty).</p>
 <ul>
-	<li><b>Lista</b> zawiera od razu wszystkich podpisanych pod zdjęciami: niczego nie trzeba dodawać. Uzupełniasz tylko to, co potrzebne: Instagram, Facebook lub strona (podpis „fot.” staje się linkiem), konto na stronie (pole z wyszukiwaniem: wpisz fragment imienia albo loginu), aliasy.</li>
+	<li>Zaznacz elementy (klik, <kbd>Ctrl</kbd>/<kbd>Shift</kbd>+klik, <kbd>Ctrl</kbd>+<kbd>A</kbd>) i kliknij w Właściwościach <b>Przywróć zaznaczone</b>, albo <b>Przywróć wszystko</b>. Elementy wracają na pierwotne miejsce. Przywracać może każdy redaktor.</li>
+	<li>Trwale usunąć zaznaczone i <b>Opróżnić kosz</b> (na dole Właściwości albo prawym przyciskiem na Koszu w drzewie) może tylko administrator. Dostaje ostrzeżenie, bo tego nie da się cofnąć.</li>
+	<li>Na Pulpicie w „Na skróty” jest link do Kosza z liczbą elementów.</li>
+</ul>
+
+<h2>9. Autorzy i OCR</h2>
+<p><b>Focus Portfolio → Autorzy</b>:</p>
+<ul>
+	<li><b>Lista</b> zawiera od razu wszystkich podpisanych pod zdjęciami: niczego nie trzeba dodawać. Uzupełniasz tylko to, co potrzebne: konto na stronie (pole z wyszukiwaniem: wpisz fragment imienia albo loginu), aliasy.</li>
+	<li><b>Profil</b> (Instagram, Facebook, strona; podpis „fot.” staje się linkiem) jest brany z <b>konta użytkownika</b>: w <b>Użytkownicy → Profil</b> są pola Instagram i Facebook (wtyczka dodaje je, jeśli nie ma ich np. z Yoast SEO), a strona to pole „Witryna”. Na liście Autorów widać krótkie oznaczenia; <b>Edytuj</b> pozwala wpisać inny adres tylko dla portfolio albo dla osoby bez konta.</li>
 	<li><b>Poprawione imię i nazwisko</b> (np. literówka z OCR) zastępuje stary zapis na stronie; stary zapis sam staje się aliasem.</li>
 	<li>Na górze: wyszukiwarka, filtr (z danymi, tylko podpis, bez konta, bez profilu, ukryci) i sortowanie (liczba zdjęć, nazwisko, imię).</li>
 	<li><b>Usuń</b> pyta, co usunąć: same dane osoby (podpisy na zdjęciach zostają) albo także <b>podpis autora na jej zdjęciach</b> (wszystkie zapisy tej osoby, także z EXIF i OCR). Usunięty podpis przywrócisz w Eksploratorze, wpisując autora zdjęcia.</li>
 	<li><b>Aliasy</b> łączą różne zapisy jednej osoby (np. <code>@nick</code>, literówki z OCR) w jedno nazwisko na stronie i w filtrze autorów.</li>
 	<li><b>Dopasuj konta</b> łączy osoby z kontami użytkowników po imieniu i nazwisku.</li>
 	<li><b>Rozpoznaj autorów ze stopki (OCR)</b>: wybierz katalogi (albo wszystkie) i miejsce podpisu (domyślnie lewa połowa, dolne 15% zdjęcia). Rozpoznawanie działa w przeglądarce. Wyniki sprawdzasz i poprawiasz w tabeli, potem „Zapisz zaznaczonych autorów”.</li>
-	<li>W <b>Ustawienia → Autorzy i podpisy</b> wpisujesz podpisy organizacji w EXIF, które nie są autorem (np. nazwa klubu wpisana w aparatach), i słowa z logo w stopce, które OCR ma pominąć.</li>
+	<li>W <b>Ustawienia → Autorzy: podpisy w EXIF</b> wpisujesz podpisy organizacji, które nie są autorem (np. nazwa klubu wpisana w aparatach), a w <b>Ustawienia → OCR</b> słowa z logo w stopce, które OCR ma pominąć.</li>
 </ul>
 <h3>Język</h3>
 <p>Napisy dla odwiedzających (filtry, sortowanie, liczniki, miesiące, lightbox) są po polsku, angielsku, niemiecku, hiszpańsku, francusku i włosku. Domyślnie w języku strony, a w <b>Ustawienia → Język</b> można wymusić inny. Tytuły i opisy katalogów zostają takie, jak je wpiszesz. Panel administracyjny jest na razie po polsku.</p>
@@ -225,7 +259,7 @@ KONCERTY/
 <table>
 	<tr><th>Poziom</th><th>Co może</th></tr>
 	<tr><td><b>Podgląd</b></td><td>Ogląda panel, Eksplorator, statystyki i problemy. Niczego nie zmienia.</td></tr>
-	<tr><td><b>Redakcja</b></td><td>Wgrywa, przenosi, zmienia nazwy, usuwa do kosza i przywraca w katalogu źródłowym; ustawia autorów, okładki, gwiazdki, kolejność; prowadzi rejestr fotografów; OCR; miniatury.</td></tr>
+	<tr><td><b>Redakcja</b></td><td>Wgrywa, przenosi, zmienia nazwy, usuwa do kosza i przywraca w katalogu źródłowym; ustawia autorów, okładki, gwiazdki, kolejność; prowadzi listę autorów; OCR; miniatury.</td></tr>
 	<tr><td><b>Administracja</b></td><td>Wszystko powyżej oraz: katalog źródłowy, strona portfolio, Struktura, Wygląd, Uprawnienia, trwałe usuwanie z kosza.</td></tr>
 </table>
 <p>Poziomy przypisujesz rolom w <b>Ustawienia → Uprawnienia</b>. Gotowa rola <b>„Redaktor portfolio”</b> ma Podgląd i Redakcję. Konkretnym osobom nadajesz ją w <b>Użytkownicy</b>. Administrator ma zawsze wszystko.</p>
