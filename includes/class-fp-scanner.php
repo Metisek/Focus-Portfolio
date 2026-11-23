@@ -29,7 +29,10 @@ class FP_Scanner {
 	private static $index    = null;
 	private static $variants = array();
 	private static $problems = array();
+	private static $notes    = array();
 	private static $mode     = 'events';
+
+	const OPT_ACK = 'fp_notes_ack';          // poprawki automatyczne potwierdzone przez użytkownika: [id => czas]
 
 	/* ---------- dostęp do manifestu ---------- */
 
@@ -193,6 +196,7 @@ class FP_Scanner {
 		self::$prev     = array();
 		self::$variants = array();
 		self::$problems = array();
+		self::$notes    = array();
 		FP_Meta::flush();
 		foreach ( $fresh ? array() : self::all_photos() as $p ) {
 			self::$prev[ $p['f'] ] = $p;
@@ -283,8 +287,10 @@ class FP_Scanner {
 			'cats'      => $cats,
 			'issues'    => self::$issues,
 			'problems'  => self::$problems,
+			'notes'     => self::$notes,
 			'stats'     => $stats,
 		);
+		self::prune_acks();
 		self::$index    = null;
 		update_option( self::OPT_MANIFEST, self::$manifest, false );
 		update_option( self::OPT_SIG, self::signature(), false );
@@ -324,13 +330,13 @@ class FP_Scanner {
 				'sort'  => $yr * 100 + $mon,
 			);
 			if ( false !== strpos( $mname, '(' ) ) {
-				self::issue( sprintf( 'Notatka w nazwie folderu „%s” jest ukryta w tytule.', $mrel ) );
+				self::issue( sprintf( 'Notatka w nazwie folderu „%s” jest ukryta w tytule.', $mrel ), $mrel );
 			}
 			if ( ! empty( $mmeta['archive'] ) ) {
 				$period = self::archive_period();
 			}
 			if ( ! $explicit ) {
-				self::issue( sprintf( 'Folder „%s” nie ma roku; przyjęto %d (%s).', $mrel, $yr, self::year_rule() ) );
+				self::issue( sprintf( 'Folder „%s” nie ma roku; przyjęto %d (%s).', $mrel, $yr, self::year_rule() ), $mrel );
 				self::problem( 'no_year', $mrel, sprintf( 'Miesiąc „%s” nie ma roku; przyjęto %d. Wpisz rok albo zmień nazwę na „%d-%02d %s”.', $mname, $yr, $yr, $mon, self::MONTH_NAMES[ $mon - 1 ] ) );
 			}
 			list( $edirs, $efiles ) = self::ls( self::$root . '/' . $mrel );
@@ -364,7 +370,7 @@ class FP_Scanner {
 				$yr = (int) $ey[1];
 			}
 			if ( ! $yr && empty( $emeta['archive'] ) ) {
-				self::issue( sprintf( 'Edycja „%s” nie ma roku (np. sufiksu „25_”); trafia do „Archiwum”.', $drel ) );
+				self::issue( sprintf( 'Edycja „%s” nie ma roku (np. sufiksu „25_”); trafia do „Archiwum”.', $drel ), $drel );
 				self::problem( 'no_year', $drel, sprintf( 'Edycja „%s” nie ma roku i trafia do „Archiwum”. Wpisz rok albo zostaw w archiwum.', $name ) );
 			}
 			$period = array(
@@ -424,8 +430,15 @@ class FP_Scanner {
 		return $groups;
 	}
 
-	/** Data z początku nazwy katalogu: [rok, miesiąc albo 0, tytuł bez daty] albo null. */
+	/**
+	 * Data z początku nazwy katalogu: [rok, miesiąc albo 0, tytuł bez daty] albo null.
+	 * Zakres miesięcy („2024-10 – 2025-02 Nazwa”, „2024-10..2025-02 Nazwa”) dodaje [3] rok i [4] miesiąc końca.
+	 */
 	public static function parse_dated( $name ) {
+		if ( preg_match( '/^(20\d\d)[-_.](\d{1,2})\s*(?:–|—|\.\.|-|_|do)\s*(20\d\d)[-_.](\d{1,2})[\s._-]+(.*\S.*)$/u', $name, $m )
+			&& (int) $m[2] >= 1 && (int) $m[2] <= 12 && (int) $m[4] >= 1 && (int) $m[4] <= 12 && (int) $m[3] * 100 + (int) $m[4] >= (int) $m[1] * 100 + (int) $m[2] ) {
+			return array( (int) $m[1], (int) $m[2], trim( $m[5] ), (int) $m[3], (int) $m[4] );
+		}
 		if ( preg_match( '/^(20\d\d)(?:[-_.](\d{1,2})(?:[-_.](\d{1,2}))?)?[\s._-]+(.*\S.*)$/u', $name, $m ) && ( '' === $m[2] || ( (int) $m[2] >= 1 && (int) $m[2] <= 12 ) ) ) {
 			return array( (int) $m[1], '' === $m[2] ? 0 : (int) $m[2], trim( $m[4] ) );
 		}
@@ -436,7 +449,9 @@ class FP_Scanner {
 	private static function add_dated_event( &$groups, $drel, $period ) {
 		$d     = self::parse_dated( basename( $drel ) );
 		$title = $d ? $d[2] : null;
-		if ( $d && ! $period ) {
+		if ( $d && ! $period && isset( $d[3] ) ) {
+			$period = self::range_period( $d[0], $d[1], $d[3], $d[4] );
+		} elseif ( $d && ! $period ) {
 			if ( 'years' === self::$mode ) {
 				$period = array( 'label' => (string) $d[0], 'key' => (string) $d[0], 'sort' => $d[0] * 100 + $d[1] );
 			} elseif ( $d[1] ) {
@@ -458,7 +473,7 @@ class FP_Scanner {
 			$paths = array_map( function ( $f ) use ( $rel ) { return $rel . '/' . $f; }, $fs );
 			$title = '' === $key ? '' : self::clean_title( $key );
 			if ( '' === $key ) {
-				self::issue( sprintf( '%d zdjęć w „%s” ma nazwy z aparatu (DSC/IMG) i trafia do grupy „Pozostałe”.', count( $fs ), $rel ) );
+				self::issue( sprintf( '%d zdjęć w „%s” ma nazwy z aparatu (DSC/IMG) i trafia do grupy „Pozostałe”.', count( $fs ), $rel ), $rel );
 				self::problem( 'loose', $rel, sprintf( '%d zdjęć bez nazwy wydarzenia (DSC/IMG) leży luzem w „%s”. Przenieś je do katalogu wydarzenia.', count( $fs ), $rel ), $paths );
 			}
 			$g = self::make_group( '' === $title ? 'Pozostałe' : $title, $paths, $period, null, $rel, '' === $key ? '*' : $key );
@@ -477,16 +492,16 @@ class FP_Scanner {
 			$st  = FP_Settings::structure();
 			$abs = self::$root . '/' . $drel;
 			if ( ! empty( $st['auto_archive'] ) && ! array_diff( (array) @scandir( $abs ), array( '.', '..' ) ) && @rmdir( $abs ) ) { // phpcs:ignore
-				self::issue( sprintf( 'Usunięto pusty katalog „%s” (porządkowanie automatyczne).', $drel ) );
+				self::issue( sprintf( 'Usunięto pusty katalog „%s” (porządkowanie automatyczne).', $drel ), dirname( $drel ) );
 				return;
 			}
-			self::issue( sprintf( 'Pusty folder „%s” został pominięty.', $drel ) );
+			self::issue( sprintf( 'Pusty folder „%s” został pominięty.', $drel ), $drel );
 			self::problem( 'empty', $drel, sprintf( 'Pusty katalog „%s” (nie jest pokazywany).', $drel ) );
 			return;
 		}
 		list( $sub ) = self::ls( self::$root . '/' . $drel );
 		if ( $sub ) {
-			self::issue( sprintf( 'Podfoldery w „%s” są pokazane jako jedno wydarzenie.', $drel ) );
+			self::issue( sprintf( 'Podfoldery w „%s” są pokazane jako jedno wydarzenie.', $drel ), $drel );
 		}
 		if ( ! $period && in_array( self::$mode, array( 'months', 'years', 'dated' ), true ) ) {
 			$em = FP_Meta::get( $drel );
@@ -547,8 +562,13 @@ class FP_Scanner {
 			$title = $info['title'];
 		}
 		$date = ! empty( $gmeta['date'] ) ? (string) $gmeta['date'] : ( isset( $info['date'] ) ? $info['date'] : '' );
+		$to   = ! empty( $gmeta['date_to'] ) ? (string) $gmeta['date_to'] : '';
 		if ( '' !== $date && preg_match( '/^(20\d\d)-(\d{2})(?:-(\d{2}))?/', $date, $d ) ) {
-			$period = self::period_from_date( (int) $d[1], max( 1, min( 12, (int) $d[2] ) ), $period );
+			if ( '' !== $to && preg_match( '/^(20\d\d)-(\d{2})/', $to, $e ) && (int) $e[1] * 100 + (int) $e[2] > (int) $d[1] * 100 + (int) $d[2] ) {
+				$period = self::range_period( (int) $d[1], max( 1, min( 12, (int) $d[2] ) ), (int) $e[1], max( 1, min( 12, (int) $e[2] ) ) );
+			} else {
+				$period = self::period_from_date( (int) $d[1], max( 1, min( 12, (int) $d[2] ) ), $period );
+			}
 		}
 		if ( ! empty( $gmeta['archive'] ) ) {
 			$period = self::archive_period();
@@ -625,6 +645,25 @@ class FP_Scanner {
 		return array( 'label' => $label, 'key' => self::slug( $label ), 'sort' => $y * 100 + $m );
 	}
 
+	/**
+	 * Okres obejmujący kilka miesięcy (np. cykl imprez od października do lutego): „Październik 2024 – Luty 2025”,
+	 * w schematach z latami „2024–2025”. Na liście stoi według miesiąca końca.
+	 */
+	public static function range_period( $y1, $m1, $y2, $m2 ) {
+		if ( $y1 * 100 + $m1 >= $y2 * 100 + $m2 ) {
+			return self::period_from_date( $y1, $m1, null );
+		}
+		if ( 'numbered' === self::$mode || 'years' === self::$mode ) {
+			$label = $y1 === $y2 ? (string) $y1 : $y1 . '–' . $y2;
+			return array( 'label' => $label, 'key' => self::slug( $label ), 'sort' => $y2 * 100 + $m2 );
+		}
+		$label = self::MONTH_NAMES[ $m1 - 1 ] . ' ' . $y1 . ' – ' . self::MONTH_NAMES[ $m2 - 1 ] . ' ' . $y2;
+		if ( $y1 === $y2 ) {
+			$label = self::MONTH_NAMES[ $m1 - 1 ] . ' – ' . self::MONTH_NAMES[ $m2 - 1 ] . ' ' . $y2;
+		}
+		return array( 'label' => $label, 'key' => self::slug( $label ), 'sort' => $y2 * 100 + $m2, 'from' => $y1 * 100 + $m1 );
+	}
+
 	private static function archive_period() {
 		return array( 'label' => 'Archiwum', 'key' => 'archiwum', 'sort' => 1 );
 	}
@@ -641,7 +680,7 @@ class FP_Scanner {
 		}
 		$info = @getimagesize( $abs ); // phpcs:ignore
 		if ( ! $info || $info[0] < 1 ) {
-			self::issue( sprintf( 'Plik „%s” nie jest poprawnym obrazem i został pominięty.', $rel ) );
+			self::issue( sprintf( 'Plik „%s” nie jest poprawnym obrazem i został pominięty.', $rel ), dirname( $rel ) );
 			return null;
 		}
 		$w      = (int) $info[0];
@@ -1016,8 +1055,50 @@ class FP_Scanner {
 		return $out;
 	}
 
-	private static function issue( $msg ) {
+	/**
+	 * Coś, co wtyczka poprawiła albo przyjęła sama. Trafia do „Do sprawdzenia” w Eksploratorze,
+	 * dopóki ktoś nie potwierdzi, że jest dobrze ($path: katalog, którego dotyczy).
+	 */
+	private static function issue( $msg, $path = '' ) {
 		self::$issues[] = $msg;
+		self::$notes[]  = array( 'id' => substr( md5( $msg ), 0, 12 ), 'msg' => $msg, 'path' => (string) $path );
+	}
+
+	/** Poprawki automatyczne, których nikt jeszcze nie potwierdził. */
+	public static function notes() {
+		$ack  = (array) get_option( self::OPT_ACK, array() );
+		$out  = array();
+		$todo = array_flip( wp_list_pluck( (array) ( self::manifest()['problems'] ?? array() ), 'path' ) ); // te są już w „Do uporządkowania”
+		foreach ( (array) ( self::manifest()['notes'] ?? array() ) as $n ) {
+			if ( ! isset( $ack[ $n['id'] ] ) && ( '' === $n['path'] || ! isset( $todo[ $n['path'] ] ) ) ) {
+				$out[] = $n;
+			}
+		}
+		return $out;
+	}
+
+	/** Potwierdza poprawki (lista id albo wszystkie bieżące). */
+	public static function ack_notes( $ids = null ) {
+		$ack = (array) get_option( self::OPT_ACK, array() );
+		foreach ( (array) ( self::manifest()['notes'] ?? array() ) as $n ) {
+			if ( null === $ids || in_array( $n['id'], (array) $ids, true ) ) {
+				$ack[ $n['id'] ] = time();
+			}
+		}
+		update_option( self::OPT_ACK, $ack, false );
+	}
+
+	/** Potwierdzenia poprawek, których już nie ma, są usuwane (żeby opcja nie rosła). */
+	private static function prune_acks() {
+		$ack = (array) get_option( self::OPT_ACK, array() );
+		if ( ! $ack ) {
+			return;
+		}
+		$ids = array_flip( wp_list_pluck( self::$notes, 'id' ) );
+		$new = array_intersect_key( $ack, $ids );
+		if ( count( $new ) !== count( $ack ) ) {
+			update_option( self::OPT_ACK, $new, false );
+		}
 	}
 
 	/** Wydarzenie, do którego należy plik (ścieżka względem źródła): [kategoria, grupa] albo null. */

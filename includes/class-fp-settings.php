@@ -10,6 +10,9 @@ class FP_Settings {
 	const OPT      = 'fp_settings';
 	const OPT_VIEW = 'fp_view';
 
+	/** Domyślny katalog zdjęć (względem wp-content): powstaje sam przy włączeniu wtyczki, więc portfolio działa od razu. */
+	const DEFAULT_SOURCE = 'uploads/focus-portfolio';
+
 	private static $cache = array();
 
 	/** Ustawienia nadpisane przez widżet Elementora lub blok na czas jednego renderowania. */
@@ -17,7 +20,7 @@ class FP_Settings {
 
 	public static function defaults() {
 		return array(
-			'source'        => 'uploads/portfolio-focus', // względem wp-content
+			'source'        => self::DEFAULT_SOURCE,  // względem wp-content; tworzony przy włączeniu wtyczki
 			'page_id'       => 0,                   // strona, na której wyświetla się portfolio
 			'academic_year' => self::current_year(), // domyślny rok dla katalogów miesięcy bez roku (przy instalacji: bieżący)
 			'season_start'  => 1,                   // pierwszy miesiąc „roku zdjęć”: 1 = rok kalendarzowy, 10 = akademicki, 9 = szkolny;
@@ -318,6 +321,21 @@ class FP_Settings {
 		}
 		if ( false === get_option( self::OPT_VIEW ) ) {
 			add_option( self::OPT_VIEW, self::view_defaults() );
+		}
+		self::ensure_source_dir();
+	}
+
+	/**
+	 * Tworzy domyślny katalog zdjęć, jeśli ustawione jest źródło domyślne, a katalogu jeszcze nie ma
+	 * (świeża instalacja albo katalog usunięty przez FTP). Własnych ścieżek nie tworzy.
+	 */
+	public static function ensure_source_dir() {
+		$rel = trim( str_replace( '\\', '/', (string) self::get( 'source' ) ), '/' );
+		if ( self::DEFAULT_SOURCE !== $rel || is_dir( WP_CONTENT_DIR . '/' . $rel ) ) {
+			return;
+		}
+		if ( wp_mkdir_p( WP_CONTENT_DIR . '/' . $rel ) ) {
+			unset( self::$cache['path'] );
 		}
 	}
 

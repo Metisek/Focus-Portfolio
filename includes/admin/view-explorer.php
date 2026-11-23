@@ -5,6 +5,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
+FP_Settings::ensure_source_dir(); // domyślny katalog „focus-portfolio” mógł zniknąć (np. usunięty przez FTP)
 if ( ! FP_Settings::source_path() ) {
 	echo '<p class="fp-warn">Katalog źródłowy nie istnieje. Ustaw go w <a href="' . esc_url( FP_Admin::url( 'settings' ) ) . '">Ustawieniach</a>.</p>';
 	return;
@@ -15,6 +16,7 @@ $conf = array(
 	'canAdmin' => FP_Caps::can( FP_Caps::ADMIN ),
 	'start'    => FP_Admin::qkey( 'view' ),
 	'path'     => isset( $_GET['path'] ) && is_string( $_GET['path'] ) ? sanitize_text_field( wp_unslash( $_GET['path'] ) ) : '', // phpcs:ignore
+	'ibType'   => FP_Admin::qkey( 'type' ), // filtr w „Do uporządkowania” (auto = do sprawdzenia)
 	'maxSize'  => wp_max_upload_size(),
 	'months'   => FP_Scanner::MONTH_NAMES,
 );

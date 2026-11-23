@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       Focus Portfolio
- * Description:       Portfolio zdjęć czytane prosto z folderu na hostingu (kategorie → wydarzenia → zdjęcia), z automatycznym skanowaniem, miniaturami WebP i importem zdjęć.
+ * Description:       Portfolio (zdjęcia, grafiki, prace) czytane prosto z folderu na hostingu (kategorie → wydarzenia → pliki), z automatycznym skanowaniem, miniaturami WebP i importem.
  * Version:           1.1.2
  * Requires at least: 6.0
  * Requires PHP:      7.4
@@ -58,6 +58,7 @@ FP_Frontend::init();
 FP_Embeds::init();
 FP_Photos::init();
 FP_Updates::init();
+add_filter( 'user_contactmethods', array( 'FP_People', 'contact_methods' ) );
 
 add_filter( 'cron_schedules', function ( $s ) {
 	$s['fp_quarter'] = array( 'interval' => 15 * MINUTE_IN_SECONDS, 'display' => 'Co 15 minut (Focus Portfolio)' );

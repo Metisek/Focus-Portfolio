@@ -18,70 +18,28 @@ $modes = array(
 	'events'   => 'Wydarzenia (bez dat)',
 );
 $schemes = array(
-	'months'   => array(
-		'Miesiące → wydarzenia',
-		'Fotorelacje z wielu wydarzeń w roku. Na stronie pogrupowane po miesiącach, z filtrem miesięcy i lat.',
-		"KATEGORIA/\n  2026-04 Kwiecień/          ← rok-miesiąc i nazwa miesiąca\n    Bal Tysiąca Świateł/      ← 1 katalog = 1 wydarzenie\n      DSC_0001.jpg\n    Juwenalia-01.jpg          ← zdjęcia luzem „Nazwa-NN” też tworzą wydarzenie\n  2025/                       ← albo lata, a w nich miesiące\n    11 Listopad/\n      Otrzęsiny/",
-		'Akceptowane też nazwy „KWIECIEŃ”, „LISTOPAD 2025”, „04 Kwiecień”. Bez roku wtyczka przyjmie domyślny rok z Ustawień → Daty i zgłosi to w „Do uporządkowania”.',
-	),
-	'dated'    => array(
-		'Wydarzenia z datą w nazwie',
-		'Płaska lista wydarzeń, każde z datą na początku (jak eksport z Lightrooma). Na stronie pogrupowane po miesiącach.',
-		"KATEGORIA/\n  2026-05-12 Juwenalia/       ← data i nazwa (data znika z tytułu)\n  2026-04 Bal Tysiąca Świateł/ ← sam miesiąc też wystarczy\n  2025 Plener w Kazimierzu/   ← albo sam rok",
-		'Najprostszy schemat do sortowania w systemie plików: katalogi same układają się po dacie. Wydarzenie bez daty trafi do „Do uporządkowania”.',
-	),
-	'years'    => array(
-		'Lata → wydarzenia',
-		'Sesje, wyjazdy, projekty: mniej wydarzeń w roku. Na stronie pogrupowane po latach, z filtrem lat.',
-		"KATEGORIA/\n  2026/\n    Sesja na dzień kobiet/    ← 1 katalog = 1 galeria\n    2026-03 Plener/           ← data w nazwie zostaje tylko do sortowania\n  2025/\n    Studniówka/",
-		'Wydarzenie poza katalogiem roku, bez daty w nazwie, trafi do „Do uporządkowania”.',
-	),
-	'numbered' => array(
-		'Edycje (numer + rok)',
-		'Konkursy i cykle tematyczne (np. konkurs miesięczny). Na stronie pogrupowane po latach.',
-		"KATEGORIA/\n  2026/\n    03 Ramka/                 ← numer edycji i temat\n      Imię Nazwisko.jpg       ← nazwa pliku = autor\n  07 granice 25_/             ← stary zapis: numer, temat, rok jako „25_”",
-		'Edycja bez roku trafia do „Archiwum”. Rok wpiszesz w Eksploratorze albo w nazwie.',
-	),
-	'events'   => array(
-		'Wydarzenia (bez dat)',
-		'Sesje, koncerty i inne zbiory bez podziału na miesiące.',
-		"KATEGORIA/\n  Sesja na dzień kobiet/      ← 1 katalog = 1 galeria\n  eliminacje varso-01.jpg     ← zdjęcia luzem „Nazwa-NN” tworzą galerię\n  DSC_1234.jpg                ← bez nazwy: grupa „Pozostałe”",
-		'Datę wydarzenia (do filtrów i sortowania) ustawisz w Eksploratorze.',
-	),
+	'months'   => array( 'Miesiące → wydarzenia', 'wiele wydarzeń w roku, grupy po miesiącach', 'KATEGORIA/2026-04 Kwiecień/Bal/' ),
+	'dated'    => array( 'Wydarzenia z datą w nazwie', 'płaska lista, data na początku nazwy', 'KATEGORIA/2026-05-12 Juwenalia/' ),
+	'years'    => array( 'Lata → wydarzenia', 'kilka galerii w roku, grupy po latach', 'KATEGORIA/2026/Plener/' ),
+	'numbered' => array( 'Edycje (numer + rok)', 'konkursy i cykle', 'KATEGORIA/2026/03 Ramka/' ),
+	'events'   => array( 'Wydarzenia (bez dat)', 'zbiory bez podziału na czas', 'KATEGORIA/Sesja na dzień kobiet/' ),
 );
+$doc = FP_Admin::url( 'help' );
 ?>
 <p class="fp-intro">Jak nazywać katalogi w <code><?php echo esc_html( 'wp-content/' . trim( (string) FP_Settings::get( 'source' ), '/' ) . '/' ); ?></code>,
 	żeby wtyczka sama poprawnie ułożyła portfolio, i które filtry widzą odwiedzający. Każdy katalog pierwszego poziomu to kategoria.</p>
 
 <?php FP_Admin::card( 'schemes', 'Schematy nazw katalogów' ); ?>
-	<div class="fp-schemes">
-	<?php foreach ( $schemes as $k => $sc ) : ?>
-		<div class="fp-scheme">
-			<h3><?php echo esc_html( $sc[0] ); ?></h3>
-			<p><?php echo esc_html( $sc[1] ); ?></p>
-			<pre class="fp-tree"><?php echo esc_html( $sc[2] ); ?></pre>
-			<p class="description"><?php echo esc_html( $sc[3] ); ?></p>
-		</div>
-	<?php endforeach; ?>
-	</div>
-	<details class="fp-which">
-		<summary><b>Który schemat wybrać?</b></summary>
-		<ul class="fp-rules">
-			<li>Dużo wydarzeń co miesiąc (fotorelacje) → <b>Miesiące → wydarzenia</b>; jeśli wolisz nazywać katalogi datą wydarzenia → <b>Wydarzenia z datą w nazwie</b>.</li>
-			<li>Kilka–kilkanaście galerii w roku (sesje, wyjazdy, projekty) → <b>Lata → wydarzenia</b>.</li>
-			<li>Konkurs albo cykl z numerami edycji → <b>Edycje</b>.</li>
-			<li>Zbiór bez dat (portfolio osoby, „najlepsze”, archiwum) → <b>Wydarzenia (bez dat)</b>.</li>
-			<li>Podział na fotografów albo klientów: zrób kategorię na osobę (np. <code>JAN KOWALSKI/</code>) z dowolnym schematem; autora zdjęć ustawisz w Eksploratorze („Domyślny autor zdjęć” katalogu).</li>
-		</ul>
-	</details>
-	<h3>Zasady dla wszystkich kategorii</h3>
-	<ul class="fp-rules">
-		<li>Pliki i katalogi zaczynające się od <code>__</code> (np. <code>__kosz</code>, <code>__robocze</code>) są pomijane.</li>
-		<li>Kopie, które tworzy Biblioteka mediów (<code>-150x150</code>, <code>-scaled</code>), są pomijane.</li>
-		<li>Notatki w nawiasach w nazwie katalogu, np. „GRUDZIEŃ (bez ślizgawki)”, nie trafiają na stronę.</li>
-		<li>Prefiks „Kopia ” w nazwach plików jest usuwany z tytułów; autor jest odczytywany z EXIF, z nazwy pliku („1_Imię Nazwisko”, „@nick”) albo ustawiany w Eksploratorze.</li>
-		<li>Dane katalogu (tytuł, opis, data, okładki, kolejność, gwiazdki, autorzy) są w pliku <code>_portfolio.json</code> w tym katalogu i przenoszą się razem z nim, także przez FTP.</li>
-	</ul>
+	<p>Pełne opisy schematów z przykładami, zakresy dat (np. <code>2024-10 – 2025-02 Nazwa</code>), podpowiedź „Który schemat wybrać?” i zasady nazw są w
+		<a href="<?php echo esc_url( $doc . '#nazwy' ); ?>"><b>Instrukcji, rozdział 3</b></a>. Tu tylko ściąga:</p>
+	<table class="widefat striped fp-scheme-mini">
+		<thead><tr><th>Schemat</th><th>Kiedy</th><th>Przykład</th></tr></thead>
+		<tbody>
+		<?php foreach ( $schemes as $sc ) : ?>
+			<tr><td><b><?php echo esc_html( $sc[0] ); ?></b></td><td><?php echo esc_html( $sc[1] ); ?></td><td><code><?php echo esc_html( $sc[2] ); ?></code></td></tr>
+		<?php endforeach; ?>
+		</tbody>
+	</table>
 	<div class="fp-namecheck" id="fp-namecheck">
 		<h3>Sprawdź nazwę przed utworzeniem</h3>
 		<div class="fp-inline">

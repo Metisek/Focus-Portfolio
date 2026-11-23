@@ -65,18 +65,20 @@ $tab  = isset( $tabs[ $tab ] ) ? $tab : 'source';
 		</div>
 	<?php FP_Admin::card_end(); ?>
 
-	<?php FP_Admin::card( 'authors', 'Autorzy i podpisy' ); ?>
-		<div class="fp-grid2">
-			<div class="fp-field">
-				<label for="fp-ia">Podpisy w EXIF, które nie są autorem</label>
-				<textarea id="fp-ia" name="fp[ignore_artists]" rows="3" class="large-text" placeholder="np. nazwa organizacji wpisana w aparatach"><?php echo esc_textarea( $s['ignore_artists'] ); ?></textarea>
-				<p class="description">Po jednym w linii. Zdjęcie z takim polem „Artist” dostaje autora z nazwy pliku, z katalogu albo z OCR.</p>
-			</div>
-			<div class="fp-field">
-				<label for="fp-os">Słowa w stopce zdjęcia, które nie są nazwiskiem</label>
-				<input type="text" id="fp-os" name="fp[ocr_skip]" value="<?php echo esc_attr( $s['ocr_skip'] ); ?>" class="regular-text" placeholder="np. logo w stopce: FOCUS, KLUB">
-				<p class="description">Po przecinku. OCR pominie je w stopce typu „LOGO | IMIĘ NAZWISKO” (także z drobnymi literówkami).</p>
-			</div>
+	<?php FP_Admin::card( 'authors', 'Autorzy: podpisy w EXIF' ); ?>
+		<div class="fp-field">
+			<label for="fp-ia">Podpisy w EXIF, które nie są autorem</label>
+			<textarea id="fp-ia" name="fp[ignore_artists]" rows="3" class="large-text" placeholder="np. nazwa organizacji wpisana w aparatach"><?php echo esc_textarea( $s['ignore_artists'] ); ?></textarea>
+			<p class="description">Po jednym w linii. Zdjęcie z takim polem „Artist” dostaje autora z nazwy pliku, z katalogu albo z OCR.</p>
+		</div>
+	<?php FP_Admin::card_end(); ?>
+
+	<?php FP_Admin::card( 'ocr', 'OCR: podpis w stopce zdjęcia' ); ?>
+		<div class="fp-field">
+			<label for="fp-os">Słowa w stopce, które nie są nazwiskiem</label>
+			<input type="text" id="fp-os" name="fp[ocr_skip]" value="<?php echo esc_attr( $s['ocr_skip'] ); ?>" class="regular-text" placeholder="np. logo w stopce: FOCUS, KLUB">
+			<p class="description">Po przecinku. OCR pominie je w stopce typu „LOGO | IMIĘ NAZWISKO” (także z drobnymi literówkami).
+				Samo rozpoznawanie uruchamiasz w <a href="<?php echo esc_url( FP_Admin::url( 'people' ) . '#fp-card-ocr' ); ?>">Autorzy → Rozpoznaj autorów ze stopki (OCR)</a>.</p>
 		</div>
 	<?php FP_Admin::card_end(); ?>
 

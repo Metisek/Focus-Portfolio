@@ -189,6 +189,19 @@ jQuery(function ($) {
 		store.set(key, saved);
 	});
 
+	/* pasek „postaw kawę”: zamknięty krzyżykiem wraca następnego dnia kalendarzowego */
+	var $tip = $('#fp-tipbar');
+	function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+	if ($tip.length) {
+		var closed = '';
+		try { closed = localStorage.getItem('fp-tip-closed') || ''; } catch (e) {}
+		$tip.prop('hidden', closed === today());
+		$tip.on('click', '.fp-tipbar-x', function () {
+			try { localStorage.setItem('fp-tip-closed', today()); } catch (e) {}
+			$tip.prop('hidden', true);
+		});
+	}
+
 	/* drzewko katalogów w wp-content (wybór źródła) */
 	var $pick = $('#fp-dirpick');
 	function loadDirs($ul) {

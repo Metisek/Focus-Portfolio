@@ -5,6 +5,7 @@
  * Pola katalogu (wydarzenia, miesiąca albo kategorii):
  *   title, subtitle, description   teksty na stronie
  *   date        "RRRR-MM" lub "RRRR-MM-DD": data wydarzenia albo poprawiony rok miesiąca
+ *   date_to     koniec zakresu dat (np. cykl imprez od 2024-10 do 2025-02); okres „Październik 2024 – Luty 2025”
  *   archive     true = trafia do „Archiwum”
  *   hidden      true = niewidoczne na stronie
  *   covers      do 5 ścieżek zdjęć (względem tego katalogu), w kolejności wyświetlania

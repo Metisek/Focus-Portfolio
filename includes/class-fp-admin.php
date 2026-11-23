@@ -1,6 +1,6 @@
 <?php
 /**
- * Panel Focus Portfolio: menu boczne z podstronami (Pulpit, Eksplorator, Fotografowie, Struktura,
+ * Panel Focus Portfolio: menu boczne z podstronami (Pulpit, Eksplorator, Autorzy, Struktura,
  * Wygląd, Ustawienia, Instrukcja), wspólne elementy (zwijane karty, zakładki) i zapis formularzy.
  * Widoki stron są w includes/admin/view-*.php.
  */
@@ -15,8 +15,8 @@ class FP_Admin {
 	public static function pages() {
 		return array(
 			self::SLUG                => array( 'Focus Portfolio', 'Pulpit', FP_Caps::VIEW, 'dashboard' ),
-			self::SLUG . '-explorer'  => array( 'Eksplorator zdjęć', 'Eksplorator', FP_Caps::VIEW, 'explorer' ),
-			self::SLUG . '-people'    => array( 'Fotografowie i autorzy', 'Fotografowie', FP_Caps::VIEW, 'people' ),
+			self::SLUG . '-explorer'  => array( 'Eksplorator', 'Eksplorator', FP_Caps::VIEW, 'explorer' ),
+			self::SLUG . '-people'    => array( 'Autorzy', 'Autorzy', FP_Caps::VIEW, 'people' ),
 			self::SLUG . '-structure' => array( 'Struktura katalogów', 'Struktura', FP_Caps::ADMIN, 'structure' ),
 			self::SLUG . '-view'      => array( 'Wygląd portfolio', 'Wygląd', FP_Caps::ADMIN, 'view' ),
 			self::SLUG . '-settings'  => array( 'Ustawienia', 'Ustawienia', FP_Caps::ADMIN, 'settings' ),
@@ -139,9 +139,21 @@ class FP_Admin {
 			}
 		}
 		echo '</nav>';
+		self::tip_bar();
 		self::notice();
 		include FP_DIR . 'includes/admin/view-' . $p[3] . '.php';
 		echo '</div>';
+	}
+
+	/**
+	 * Pasek „postaw kawę” pod nagłówkiem każdej podstrony. Krzyżyk chowa go do końca dnia
+	 * (zapamiętuje przeglądarka, admin.js); następnego dnia kalendarzowego pokazuje się znowu.
+	 * Domyślnie ukryty, żeby nie mignął przed sprawdzeniem.
+	 */
+	private static function tip_bar() {
+		echo '<div class="fp-tipbar" id="fp-tipbar" hidden><span class="fp-tipbar-ico" aria-hidden="true">☕</span>';
+		echo '<p>Focus Portfolio jest darmowe. Jeśli wtyczka Ci się przydaje, możesz <a href="' . esc_url( FP_TIP_URL ) . '" target="_blank" rel="noopener">postawić autorowi kawę</a>.</p>';
+		echo '<button type="button" class="fp-tipbar-x" aria-label="Zamknij do jutra" title="Zamknij do jutra">×</button></div>';
 	}
 
 	/** Zwijana karta; stan zapamiętuje przeglądarka (admin.js). */

@@ -13,6 +13,9 @@ class FP_FS {
 
 	const TRASH = '__kosz';
 
+	/** Podglądy usuniętych zdjęć w partii kosza (kopie miniatur, bo miniatury usuniętych zdjęć znikają przy skanie). */
+	const TRASH_THUMBS = '__miniatury';
+
 	public static function init() {
 		add_action( 'wp_ajax_fp_fs', array( __CLASS__, 'ajax' ) );
 	}
@@ -101,7 +104,7 @@ class FP_FS {
 			}
 			$d     = FP_Scanner::parse_dated( $parts[ $i ] );
 			$title = FP_Scanner::clean_title( $d ? $d[2] : $parts[ $i ] );
-			$per   = $year ? $year : ( $d ? ( $d[1] && 'dated' === $mode ? FP_Scanner::MONTH_NAMES[ $d[1] - 1 ] . ' ' . $d[0] : (string) $d[0] ) : '' );
+			$per   = $year ? $year : ( $d ? ( isset( $d[3] ) ? FP_Scanner::range_period( $d[0], $d[1], $d[3], $d[4] )['label'] : ( $d[1] && 'dated' === $mode ? FP_Scanner::MONTH_NAMES[ $d[1] - 1 ] . ' ' . $d[0] : (string) $d[0] ) ) : '' );
 			if ( count( $parts ) > $i + 1 ) {
 				return array_merge( $out, array( 'role' => 'sub', 'label' => 'Podkatalog wydarzenia (zdjęcia dołączą do „' . $title . '”)', 'period' => $per ) );
 			}
@@ -471,6 +474,22 @@ class FP_FS {
 		return $out;
 	}
 
+	/**
+	 * Liczniki zdjęć katalogów z drzewa (razem z podkatalogami), po zmianach w plikach: ścieżka → liczba.
+	 * Ścieżka '' = cały katalog źródłowy. Nieistniejące ścieżki są pomijane.
+	 */
+	public static function counts( array $paths ) {
+		$out = array();
+		foreach ( array_slice( array_unique( $paths ), 0, 500 ) as $rel ) {
+			$abs = self::abs( $rel );
+			if ( is_wp_error( $abs ) || ! is_dir( $abs ) ) {
+				continue;
+			}
+			$out[ self::rel_of( $abs ) ] = self::count_deep( $abs );
+		}
+		return $out;
+	}
+
 	/** Wszystkie katalogi źródła (do okna „Przenieś do…” z wyszukiwarką). */
 	public static function all_dirs() {
 		$root = FP_Settings::source_path();
@@ -713,6 +732,7 @@ class FP_FS {
 				continue;
 			}
 			$pm = is_file( $abs ) ? self::photo_meta( $rel ) : array(); // autor i gwiazdka wracają przy przywróceniu
+			$th = is_file( $abs ) ? self::keep_thumb( $rel, $stamp ) : '';
 			$to = $root . '/' . self::TRASH . '/' . $stamp . '/' . $rel;
 			wp_mkdir_p( dirname( $to ) );
 			if ( ! @rename( $abs, $to ) ) { // phpcs:ignore
@@ -721,17 +741,42 @@ class FP_FS {
 			}
 			FP_Meta::flush();
 			self::fix_refs( $rel, null );
-			$done[ $rel ] = $pm;
+			$done[ $rel ] = array( $pm, $th );
 		}
 		if ( $done ) {
 			$list = self::batch( $stamp );
-			foreach ( $done as $rel => $pm ) {
-				$list[] = array( 'orig' => $rel, 'user' => get_current_user_id(), 'pm' => $pm );
+			foreach ( $done as $rel => $d ) {
+				$list[] = array( 'orig' => $rel, 'user' => get_current_user_id(), 'pm' => $d[0], 'th' => $d[1] );
 			}
 			self::batch( $stamp, $list );
 		}
 		$done = array_keys( $done );
 		return array( 'trashed' => $done, 'errors' => $errs );
+	}
+
+	/** Kopia miniatury siatki zdjęcia do partii kosza (podgląd w Koszu); zwraca nazwę pliku albo ''. */
+	private static function keep_thumb( $rel, $stamp ) {
+		$idx = self::photo_index();
+		if ( ! isset( $idx[ $rel ] ) ) {
+			return '';
+		}
+		$src = FP_Thumbs::file( $idx[ $rel ][0], 'g' );
+		if ( ! is_readable( $src ) ) {
+			return '';
+		}
+		$dir  = FP_Settings::source_path() . '/' . self::TRASH . '/' . $stamp . '/' . self::TRASH_THUMBS;
+		$name = substr( md5( $rel ), 0, 16 ) . '.' . pathinfo( $src, PATHINFO_EXTENSION );
+		return wp_mkdir_p( $dir ) && @copy( $src, $dir . '/' . $name ) ? $name : ''; // phpcs:ignore
+	}
+
+	/** Usuwa kopię podglądu elementu kosza. */
+	private static function drop_thumb( $stamp, $entry ) {
+		if ( ! empty( $entry['th'] ) ) {
+			$f = FP_Settings::source_path() . '/' . self::TRASH . '/' . $stamp . '/' . self::TRASH_THUMBS . '/' . basename( $entry['th'] );
+			if ( is_file( $f ) ) {
+				wp_delete_file( $f );
+			}
+		}
 	}
 
 	/** Lista elementów partii kosza (odczyt albo zapis). */
@@ -762,9 +807,16 @@ class FP_FS {
 					continue;
 				}
 				$u     = ! empty( $it['user'] ) ? get_userdata( (int) $it['user'] ) : null;
+				$trel  = self::TRASH . '/' . $stamp . '/' . $it['orig'];
+				$img   = is_file( $abs ) && self::is_img( $abs );
 				$out[] = array(
-					'trash' => self::TRASH . '/' . $stamp . '/' . $it['orig'],
+					'trash' => $trel,
+					'name'  => basename( $it['orig'] ),
 					'orig'  => $it['orig'],
+					'thumb' => ! empty( $it['th'] ) && is_file( $base . '/' . $stamp . '/' . self::TRASH_THUMBS . '/' . $it['th'] ) ? self::source_file_url( self::TRASH . '/' . $stamp . '/' . self::TRASH_THUMBS . '/' . $it['th'] ) : ( $img ? self::source_file_url( $trel ) : '' ),
+					'large' => $img ? self::source_file_url( $trel ) : '',
+					'img'   => $img,
+					'items' => is_dir( $abs ) ? self::count_deep( $abs ) : 0,
 					'when'  => (int) strtotime( substr( $stamp, 0, 4 ) . '-' . substr( $stamp, 4, 2 ) . '-' . substr( $stamp, 6, 2 ) . ' ' . substr( $stamp, 9, 2 ) . ':' . substr( $stamp, 11, 2 ) . ':' . substr( $stamp, 13, 2 ) . ' UTC' ),
 					'type'  => is_dir( $abs ) ? 'dir' : 'file',
 					'size'  => is_file( $abs ) ? (int) filesize( $abs ) : 0,
@@ -805,6 +857,7 @@ class FP_FS {
 					FP_Meta::flush();
 					self::apply_photo_meta( self::rel_of( $dest_dir ), $name, $entry['pm'] );
 				}
+				self::drop_thumb( $m[1], $entry );
 				self::batch( $m[1], array_values( array_filter( self::batch( $m[1] ), function ( $it ) use ( $m ) { return $it['orig'] !== $m[2]; } ) ) );
 			} else {
 				$errs[] = 'Nie udało się przywrócić „' . $m[2] . '”.';
@@ -827,6 +880,11 @@ class FP_FS {
 				self::rrm( $abs );
 				$n++;
 				if ( preg_match( '#^' . self::TRASH . '/(\d{8}-\d{6})/(.+)$#', $trel, $m ) ) {
+					foreach ( self::batch( $m[1] ) as $it ) {
+						if ( $it['orig'] === $m[2] ) {
+							self::drop_thumb( $m[1], $it );
+						}
+					}
 					self::batch( $m[1], array_values( array_filter( self::batch( $m[1] ), function ( $it ) use ( $m ) { return $it['orig'] !== $m[2]; } ) ) );
 				}
 			}
@@ -859,6 +917,12 @@ class FP_FS {
 		if ( ! is_dir( $base ) ) {
 			return;
 		}
+		foreach ( (array) @scandir( $base ) as $stamp ) { // phpcs:ignore
+			// pusta partia: zostały tylko podglądy, więc też do usunięcia
+			if ( preg_match( '/^\d{8}-\d{6}$/', $stamp ) && ! self::batch( $stamp ) && is_dir( $base . '/' . $stamp . '/' . self::TRASH_THUMBS ) ) {
+				self::rrm( $base . '/' . $stamp . '/' . self::TRASH_THUMBS );
+			}
+		}
 		$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $base, FilesystemIterator::SKIP_DOTS ), RecursiveIteratorIterator::CHILD_FIRST );
 		foreach ( $it as $f ) {
 			if ( $f->isDir() ) {
@@ -880,9 +944,15 @@ class FP_FS {
 		if ( array_key_exists( 'description', $in ) ) {
 			$out['description'] = sanitize_textarea_field( (string) $in['description'] );
 		}
-		if ( array_key_exists( 'date', $in ) ) {
-			$d           = (string) $in['date'];
-			$out['date'] = preg_match( '/^20\d\d-\d{2}(-\d{2})?$/', $d ) ? $d : '';
+		foreach ( array( 'date', 'date_to' ) as $k ) {
+			// date_to: koniec zakresu (np. cykl imprez od października do lutego), RRRR-MM albo RRRR-MM-DD
+			if ( array_key_exists( $k, $in ) ) {
+				$d         = (string) $in[ $k ];
+				$out[ $k ] = preg_match( '/^20\d\d-\d{2}(-\d{2})?$/', $d ) ? $d : '';
+			}
+		}
+		if ( ! empty( $out['date_to'] ) && ( empty( $out['date'] ) || substr( $out['date_to'], 0, 7 ) <= substr( $out['date'], 0, 7 ) ) ) {
+			$out['date_to'] = ''; // koniec przed początkiem albo w tym samym miesiącu = zwykła data
 		}
 		foreach ( array( 'archive', 'hidden' ) as $k ) {
 			if ( array_key_exists( $k, $in ) ) {
@@ -909,7 +979,7 @@ class FP_FS {
 	public static function ajax() {
 		check_ajax_referer( 'fp_admin', 'nonce' );
 		$op   = isset( $_POST['op'] ) && is_string( $_POST['op'] ) ? sanitize_key( $_POST['op'] ) : ''; // phpcs:ignore
-		$read = array( 'list', 'check', 'dirs', 'trash_list', 'inbox' );
+		$read = array( 'list', 'check', 'dirs', 'trash_list', 'inbox', 'counts' );
 		$adm  = array( 'purge', 'empty_trash' );
 		$need = in_array( $op, $read, true ) ? FP_Caps::VIEW : ( in_array( $op, $adm, true ) ? FP_Caps::ADMIN : FP_Caps::EDIT );
 		if ( ! FP_Caps::can( $need ) ) {
@@ -948,7 +1018,17 @@ class FP_FS {
 				$rescan = false;
 				break;
 			case 'inbox':
-				$r      = array( 'problems' => self::inbox() );
+				$r      = array( 'problems' => self::inbox(), 'notes' => FP_Scanner::notes() );
+				$rescan = false;
+				break;
+			case 'ack':
+				// „W porządku” przy poprawce automatycznej (albo wszystkie naraz)
+				FP_Scanner::ack_notes( ! empty( $p['all'] ) ? null : $items );
+				$r      = array( 'notes' => FP_Scanner::notes() );
+				$rescan = false;
+				break;
+			case 'counts':
+				$r      = array( 'counts' => self::counts( isset( $p['paths'] ) ? array_filter( (array) $p['paths'], 'is_string' ) : array() ) );
 				$rescan = false;
 				break;
 			case 'trash_list':

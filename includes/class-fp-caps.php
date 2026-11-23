@@ -21,7 +21,7 @@ class FP_Caps {
 	public static function labels() {
 		return array(
 			self::VIEW  => array( 'Podgląd', 'Panel wtyczki tylko do odczytu: eksplorator, statystyki, lista problemów.' ),
-			self::EDIT  => array( 'Redakcja', 'Wgrywanie, przenoszenie, zmiana nazw i usuwanie (do kosza) w katalogu źródłowym; autorzy, fotografowie, okładki, gwiazdki, kolejność, OCR, miniatury.' ),
+			self::EDIT  => array( 'Redakcja', 'Wgrywanie, przenoszenie, zmiana nazw i usuwanie (do kosza) w katalogu źródłowym; autorzy, okładki, gwiazdki, kolejność, OCR, miniatury.' ),
 			self::ADMIN => array( 'Administracja', 'Katalog źródłowy, strona portfolio, struktura katalogów, wygląd, uprawnienia, opróżnianie kosza.' ),
 		);
 	}

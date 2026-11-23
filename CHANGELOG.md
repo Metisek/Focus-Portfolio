@@ -14,6 +14,19 @@ Changes from before the first GitHub release are listed by date; the version lab
 - Photos widget: cache entries that no widget has read for 30 days (for example after changing a widget's mode or folders) are now removed by the cron once a day. Existing entries count as used at the time of the update.
 - Admin panel: array values in URL parameters (e.g. `?page[]=x`, `?tab[]=x`, `?fp_msg[]=x`) and in Explorer requests no longer cause a PHP fatal error on WordPress 6.0, whose `sanitize_key()` did not check the type.
 - Database schema 1.3.1: applies the access rules and stamps the widget cache once after the update.
+- Explorer: changes (delete, rename, move, star, cover, author, folder properties) show up immediately; the server work runs in a background queue shown in the status bar (click for the list). A failed change is rolled back.
+- Uploads: several uploads are merged into one "N import operations: x of y files" entry with details in the popover. Folders that are being uploaded to cannot be renamed, moved or deleted until the upload ends.
+- Tree counters (folder, parents, root, Trash) update after every change.
+- Date ranges: folder names like `2024-10 – 2025-02 Name` and a "several months" option in folder properties (`date_to` in `_portfolio.json`). Shown as "October 2024 – February 2025" (translated).
+- A default source folder `uploads/focus-portfolio` is created on activation and used out of the box.
+- Explorer uses the full page width; the tree and properties panels can be collapsed; the tile size slider scales smoothly.
+- Trash: thumbnails, tiles/list/details views, restore selected or all, permanent delete of selected; "Empty trash" moved to the properties panel and the context menu.
+- Naming made universal: "Photographers" → "Authors" (admin and the German visitor strings).
+- Authors: compact profile column; Instagram and Facebook come from the WordPress user profile (fields added there if no other plugin provides them).
+- Settings: OCR has its own card. Dismissible coffee note on every plugin screen (comes back the next day).
+- Auto-fixes made by the scanner are listed as "To check" in the Explorer and on the dashboard, each confirmed with "Looks fine".
+- Dashboard shortcut to Trash. Scheme descriptions moved from the Structure screen to the manual (chapter 3); manual updated.
+- UI fixes: heading button alignment, photo properties spacing.
 
 ## 1.1.1 (2026-11-10)
 

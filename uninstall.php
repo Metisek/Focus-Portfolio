@@ -8,7 +8,7 @@
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 // blokady dostępu (.htaccess) zapisane przez FP_Protect: zdejmowany tylko blok wtyczki, reszta pliku zostaje
-$fp_prot = get_option( 'fp_protected' );
+$fp_prot = get_option( 'fp_protected', 'fp_notes_ack' );
 if ( is_array( $fp_prot ) && ! empty( $fp_prot['root'] ) && is_dir( $fp_prot['root'] ) ) {
 	$fp_root = untrailingslashit( wp_normalize_path( $fp_prot['root'] ) );
 	$fp_dirs = array_merge( array( '' ), isset( $fp_prot['dirs'] ) ? (array) $fp_prot['dirs'] : array() );
@@ -32,7 +32,7 @@ if ( is_array( $fp_prot ) && ! empty( $fp_prot['root'] ) && is_dir( $fp_prot['ro
 	}
 }
 
-foreach ( array( 'fp_settings', 'fp_view', 'fp_manifest', 'fp_signature', 'fp_thumbs_done', 'fp_thumb_ext', 'fp_flush_rewrite', 'fp_covers', 'fp_db_version', 'fp_authors', 'fp_structure', 'fp_people', 'fp_migrate_meta', 'fp_photos', 'fp_protected' ) as $opt ) {
+foreach ( array( 'fp_settings', 'fp_view', 'fp_manifest', 'fp_signature', 'fp_thumbs_done', 'fp_thumb_ext', 'fp_flush_rewrite', 'fp_covers', 'fp_db_version', 'fp_authors', 'fp_structure', 'fp_people', 'fp_migrate_meta', 'fp_photos', 'fp_protected', 'fp_notes_ack' ) as $opt ) {
 	delete_option( $opt );
 }
 // cache i „worki” widżetu „Focus Portfolio – Zdjęcia” (fp_ph_<hash>)
