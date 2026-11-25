@@ -314,8 +314,23 @@ class FP_Scanner {
 				$groups = array_merge( $groups, self::scan_months( $catdir, $mrel, (int) $mname ) );
 				continue;
 			}
-			list( $mon, $yr, $explicit ) = self::parse_month( $mname, $ay, $parent_year );
+			// zakres miesięcy („2024-10 – 2025-02 Nazwa” albo „Zakres kilku miesięcy” we Właściwościach) = jedno wydarzenie, nie miesiąc
+			$rng   = self::parse_dated( $mname );
 			$mmeta = FP_Meta::get( $mrel );
+			if ( $rng && isset( $rng[3] ) ) {
+				self::add_dated_event( $groups, $mrel, null );
+				continue;
+			}
+			if ( ! empty( $mmeta['date_to'] ) ) {
+				self::add_dir_event( $groups, $mrel, null );
+				continue;
+			}
+			list( $mon, $yr, $explicit ) = self::parse_month( $mname, $ay, $parent_year );
+			if ( ! $mon && ! empty( $mmeta['date'] ) && ! self::ls( self::$root . '/' . $mrel )[0] ) {
+				// wydarzenie bez podkatalogów z datą wpisaną w Eksploratorze: zostaje wydarzeniem, nie staje się miesiącem
+				self::add_dir_event( $groups, $mrel, null );
+				continue;
+			}
 			if ( ! empty( $mmeta['date'] ) && preg_match( '/^(20\d\d)-(\d{2})/', $mmeta['date'], $md ) ) {
 				list( $mon, $yr, $explicit ) = array( max( 1, min( 12, (int) $md[2] ) ), (int) $md[1], true );
 			}

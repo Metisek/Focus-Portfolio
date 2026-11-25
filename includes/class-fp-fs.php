@@ -84,8 +84,9 @@ class FP_FS {
 			}
 			// jak miesiąc bezpośrednio w kategorii, ale z rokiem z katalogu nadrzędnego
 			$sub         = self::interpret( $parts[0] . '/' . implode( '/', array_slice( $parts, 2 ) ) );
+			$rng         = FP_Scanner::parse_dated( $parts[2] );
 			list( $mon ) = FP_Scanner::parse_month( $parts[2], (int) $name, (int) $name );
-			if ( $mon ) {
+			if ( $mon && ! ( $rng && isset( $rng[3] ) ) ) {
 				$period       = FP_Scanner::MONTH_NAMES[ $mon - 1 ] . ' ' . $name;
 				$sub['label'] = '' !== $sub['period'] ? str_replace( $sub['period'], $period, $sub['label'] ) : $sub['label'];
 				$sub          = array_merge( $sub, array( 'period' => $period, 'ok' => true, 'warn' => '' ) );
@@ -117,9 +118,20 @@ class FP_FS {
 			) );
 		}
 		if ( 'months' === $mode ) {
+			$rng = FP_Scanner::parse_dated( $name );
+			if ( $rng && isset( $rng[3] ) ) {
+				$per = FP_Scanner::range_period( $rng[0], $rng[1], $rng[3], $rng[4] )['label'];
+				$ttl = FP_Scanner::clean_title( $rng[2] );
+				return array_merge( $out, 2 === count( $parts )
+					? array( 'role' => 'event', 'label' => 'Wydarzenie „' . $ttl . '” · ' . $per, 'period' => $per )
+					: array( 'role' => 'sub', 'label' => 'Podkatalog wydarzenia (zdjęcia dołączą do „' . $ttl . '”)', 'period' => $per ) );
+			}
 			list( $mon, $yr, $explicit ) = FP_Scanner::parse_month( $name, (int) FP_Settings::get( 'academic_year' ) );
 			$mm = FP_Meta::get( $parts[0] . '/' . $name );
-			if ( ! empty( $mm['date'] ) && preg_match( '/^(20\d\d)-(\d{2})/', $mm['date'], $d ) ) {
+			if ( ! $mon && ! empty( $mm['date'] ) && 2 === count( $parts ) ) {
+				return array_merge( $out, array( 'role' => 'event', 'label' => 'Wydarzenie „' . FP_Scanner::clean_title( $name ) . '” (data we Właściwościach)', 'period' => '' ) );
+			}
+			if ( $mon && ! empty( $mm['date'] ) && preg_match( '/^(20\d\d)-(\d{2})/', $mm['date'], $d ) ) {
 				list( $mon, $yr, $explicit ) = array( (int) $d[2], (int) $d[1], true );
 			}
 			if ( $mon ) {
