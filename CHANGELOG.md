@@ -2,7 +2,7 @@
 
 Changes from before the first GitHub release are listed by date; the version label stayed at "1.1" during that time.
 
-## 1.1.2 (unreleased)
+## 1.1.2 (2026-11-25)
 
 - The 15-minute scan (`fp_cron`) is now checked on every page load and rescheduled if it is missing. Before, it was only scheduled on activation, so an update from GitHub never brought back a lost event.
 - Explorer: renaming a photo keeps dots in the typed name ("Juwenalia 2.0" no longer becomes "Juwenalia 2.jpg"). Only a trailing image extension (.jpg, .jpeg, .png, .webp) is dropped before the file's own extension is added back.
